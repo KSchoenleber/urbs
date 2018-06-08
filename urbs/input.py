@@ -111,6 +111,9 @@ def pyomo_model_prep(data, timesteps):
     m.r_out = m.process_commodity.xs('Out', level='Direction')['ratio']
     m.r_in_dict = m.r_in.to_dict()
     m.r_out_dict = m.r_out.to_dict()
+    
+    # proportional processes
+    m.pro_prop = m.process_commodity.query('proportional == 1')
 
     # process areas
     m.proc_area = m.process['area-per-cap']

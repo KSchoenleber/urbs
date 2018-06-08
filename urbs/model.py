@@ -148,6 +148,16 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         initialize=m.proc_area.index,
         doc='Processes and Sites with area Restriction')
 
+    # proportional process type subsets
+    m.pro_proportional_tuples = pyomo.Set(
+        within=m.sit*m.pro*m.com,
+        initialize=[(site, process, commodity)
+                    for (site, process) in m.pro_tuples
+                    for (pro, commodity, _) in m.pro_prop.index
+                    if process == pro],
+        doc='Process outputs that must follow the demand, e.g.'
+            '(Mid,Domestic heating,Heat)')
+
     # process input/output
     m.pro_input_tuples = pyomo.Set(
         within=m.sit*m.pro*m.com,
@@ -266,6 +276,11 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         m.tm, m.pro_tuples, m.com,
         within=pyomo.NonNegativeReals,
         doc='Power flow out of process (MW) per timestep')
+    m.delta_pro = pyomo.Var(
+        m.pro_proportional_tuples,
+        within=pyomo.NonNegativeReals,
+        bounds=(0,1),
+        doc='Fraction of demand that process output must meet (0 to 1)')
 
     # transmission
     m.cap_tra = pyomo.Var(
@@ -388,6 +403,10 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         m.tm, m.pro_tuples,
         rule=res_process_throughput_by_capacity_rule,
         doc='process throughput <= total process capacity')
+    m.res_proportional_process = pyomo.Constraint(
+        m.tm, m.pro_proportional_tuples,
+        rule=res_proportional_process_rule,
+		doc='process output must meet (variable, but constant) share of demand')
     m.res_process_maxgrad_lower = pyomo.Constraint(
         m.tm, m.pro_maxgrad_tuples,
         rule=res_process_maxgrad_lower_rule,
@@ -787,6 +806,12 @@ def def_intermittent_supply_rule(m, tm, sit, pro, coin):
 # process throughput <= process capacity
 def res_process_throughput_by_capacity_rule(m, tm, sit, pro):
     return (m.tau_pro[tm, sit, pro] <= m.dt * m.cap_pro[sit, pro])
+
+
+def res_proportional_process_rule(m, tm, sit, pro, com):
+    return (m.e_pro_out[tm, sit, pro, com] ==
+            m.demand.loc[tm][sit, com] *
+            m.delta_pro[sit, pro, com])
 
 
 def res_process_maxgrad_lower_rule(m, t, sit, pro):
