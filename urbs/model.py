@@ -1050,7 +1050,19 @@ def def_costs_rule(m, cost_type):
             sum(m.tau_pro[(tm,) + p] * m.weight *
                 m.process_dict['var-cost'][p]
                 for tm in m.tm
-                for p in m.pro_tuples) + \
+                for p in m.pro_tuples - m.pro_partial_tuples) + \
+            sum(m.tau_pro[(tm,) + p] * m.weight *
+                2 * m.commodity_dict['price'][c]
+                for tm in m.tm
+                for p in pro_partial_tuples
+                for c in m.com_tuples
+                if c[1] in m.com_stock) - \
+            sum(m.e_pro_in[(tm,) + p] * m.weight *
+                2 * m.commodity_dict['price'][c]
+                for tm in m.tm
+                for p in pro_partial_tuples
+                for c in m.com_tuples
+                if c[1] in m.com_stock) + \
             sum(m.e_tra_in[(tm,) + t] * m.weight *
                 m.transmission_dict['var-cost'][t]
                 for tm in m.tm
@@ -1064,11 +1076,12 @@ def def_costs_rule(m, cost_type):
                 for s in m.sto_tuples)
 
     elif cost_type == 'Fuel':
-        return m.costs[cost_type] == sum(
-            m.e_co_stock[(tm,) + c] * m.weight *
-            m.commodity_dict['price'][c]
-            for tm in m.tm for c in m.com_tuples
-            if c[1] in m.com_stock)
+        return m.costs[cost_type] == \
+            sum(m.e_co_stock[(tm,) + c] * m.weight *
+                m.commodity_dict['price'][c]
+                for tm in m.tm 
+                for c in m.com_tuples
+                if c[1] in m.com_stock)
 
     elif cost_type == 'Revenue':
         sell_tuples = commodity_subset(m.com_tuples, m.com_sell)
