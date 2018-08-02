@@ -315,6 +315,16 @@ def create_model(data, dt=1, timesteps=None, dual=False):
                     if process == pro and s == stf],
         doc='Outputs of processes with time dependent efficiency')
 
+    # proportional process type subsets
+    m.pro_proportional_tuples = pyomo.Set(
+        within=m.stf*m.sit*m.pro*m.com,
+        initialize=[(stf, site, process, commodity)
+                    for (stf, site, process) in m.pro_tuples
+                    for (s, pro, commodity, _) in m.pro_prop.index
+                    if s == stf and process == pro],
+        doc='Process outputs that must follow the demand, e.g.'
+            '(Mid,Domestic heating,Heat)')
+
     # Derive multiplier for all energy based costs
     m.commodity['stf_dist'] = (m.commodity['support_timeframe'].
                                apply(stf_dist, m=m))
@@ -406,6 +416,11 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         m.tm, m.pro_tuples, m.com,
         within=pyomo.NonNegativeReals,
         doc='Power flow out of process (MW) per timestep')
+    m.delta_pro = pyomo.Var(
+        m.pro_proportional_tuples,
+        within=pyomo.NonNegativeReals,
+        bounds=(0,1),
+        doc='Fraction of demand that process output must meet (0 to 1)')
 
     # transmission
     m.cap_tra = pyomo.Var(
@@ -541,6 +556,11 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         m.pro_tuples,
         rule=res_process_capacity_rule,
         doc='process.cap-lo <= total process capacity <= process.cap-up')
+    m.res_proportional_process = pyomo.Constraint(
+        m.tm, m.pro_proportional_tuples,
+        rule=res_proportional_process_rule,
+		doc=('process output must meet (variable, but constant) share of'
+            'demand'))
 
     m.res_area = pyomo.Constraint(
         m.sit_tuples,
@@ -1043,6 +1063,12 @@ def res_process_capacity_rule(m, stf, sit, pro):
     return (m.process_dict['cap-lo'][stf, sit, pro],
             m.cap_pro[stf, sit, pro],
             m.process_dict['cap-up'][stf, sit, pro])
+
+
+def res_proportional_process_rule(m, tm, stf, sit, pro, com):
+    return (m.e_pro_out[tm, stf, sit, pro, com] ==
+            m.demand_dict[(sit, com)][(stf, tm)] *
+            m.delta_pro[stf, sit, pro, com])
 
 
 # used process area <= maximal process area

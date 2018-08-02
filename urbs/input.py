@@ -208,6 +208,9 @@ def pyomo_model_prep(data, timesteps):
     m.proc_area = m.proc_area[m.proc_area >= 0]
     m.sit_area = m.sit_area[m.sit_area >= 0]
 
+    # proportional processes
+    m.pro_prop = m.process_commodity.query('proportional == 1')
+
     # installed units for intertemporal planning
     m.inst_pro = m.process['inst-cap']
     m.inst_pro = m.inst_pro[m.inst_pro > 0]
