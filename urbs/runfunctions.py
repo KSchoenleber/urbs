@@ -7,6 +7,7 @@ from .report import *
 from .plot import *
 from .input import *
 from .validation import *
+from .saveload import *
 
 
 def prepare_result_directory(result_name):
@@ -80,7 +81,7 @@ def run_scenario(input_files, Solver, timesteps, scenario, result_dir, dt,
     result = optim.solve(prob, tee=True)
 
     # save problem solution (and input data) to HDF5 file
-    #urbs.save(prob, os.path.join(result_dir, '{}.h5'.format(sce)))
+    save(prob, os.path.join(result_dir, '{}.h5'.format(sce)))
 
     # write report to spreadsheet
     report(
