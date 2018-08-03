@@ -325,6 +325,12 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         doc='Process outputs that must follow the demand, e.g.'
             '(Mid,Domestic heating,Heat)')
 
+    # storage tuples for storages with fixed initial state
+    m.sto_init_bound_tuples = pyomo.Set(
+        within=m.stf*m.sit*m.sto*m.com,
+        initialize=m.stor_init_bound.index,
+        doc='storages with fixed initial state')
+
     # Derive multiplier for all energy based costs
     m.commodity['stf_dist'] = (m.commodity['support_timeframe'].
                                apply(stf_dist, m=m))
@@ -354,24 +360,6 @@ def create_model(data, dt=1, timesteps=None, dual=False):
                              .apply(cost_helper, m=m))
     m.storage['c_helper2'] = m.storage['stf_dist'].apply(cost_helper2, m=m)
     m.storage['cost_factor'] = m.storage['c_helper'] * m.storage['c_helper2']
-
-    # Parameters
-
-    # weight = length of year (hours) / length of simulation (hours)
-    # weight scales costs and emissions from length of simulation to a full
-    # year, making comparisons among cost types (invest is annualized, fixed
-    # costs are annual by default, variable costs are scaled by weight) and
-    # among different simulation durations meaningful.
-    m.weight = pyomo.Param(
-        initialize=float(8760) / (len(m.tm) * dt),
-        doc='Pre-factor for variable costs and emissions for an annual result')
-
-    # dt = spacing between timesteps. Required for storage equation that
-    # converts between energy (storage content, e_sto_con) and power (all other
-    # quantities that start with "e_")
-    m.dt = pyomo.Param(
-        initialize=dt,
-        doc='Time step duration (in hours), default: 1')
 
     # Variables
 
@@ -595,9 +583,9 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         rule=def_pro_timevar_output_rule,
         doc='e_pro_out = tau_pro * r_out * eff_factor')
     m.def_process_partial_timevar_output = pyomo.Constraint(
-         m.tm, m.pro_partial_output_tuples & m.pro_timevar_output_tuples,
-         rule=def_pro_partial_timevar_output_rule,
-         doc='e_pro_out = tau_pro * r_out * eff_factor')
+        m.tm, m.pro_partial_output_tuples & m.pro_timevar_output_tuples,
+        rule=def_pro_partial_timevar_output_rule,
+        doc='e_pro_out = tau_pro * r_out * eff_factor')
 
     # transmission
     m.def_transmission_capacity = pyomo.Constraint(
@@ -656,9 +644,13 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         rule=res_storage_capacity_rule,
         doc='storage.cap-lo-c <= storage capacity <= storage.cap-up-c')
     m.res_initial_and_final_storage_state = pyomo.Constraint(
-        m.t, m.sto_tuples,
+        m.t, m.sto_init_bound_tuples,
         rule=res_initial_and_final_storage_state_rule,
         doc='storage content initial == and final >= storage.init * capacity')
+    m.res_initial_and_final_storage_state_var = pyomo.Constraint(
+        m.t, m.sto_tuples - m.sto_init_bound_tuples,
+        rule=res_initial_and_final_storage_state_var_rule,
+        doc='storage content initial <= final, both variable')
 
     # demand side management
     m.def_dsm_variables = pyomo.Constraint(
@@ -1039,23 +1031,23 @@ def def_pro_timevar_output_rule(m, tm, stf, sit, pro, com):
 
 
 def def_pro_partial_timevar_output_rule(m, tm, stf, sit, pro, coo):
-     R = m.r_out.loc[stf, pro, coo]
-     # input ratio at maximum operation point
-     r = m.r_out_min_fraction[stf, pro, coo]
-     # input ratio at lowest operation point
-     min_fraction = m.process_dict['min-fraction'][(stf, sit, pro)]
+    # input ratio at maximum operation point
+    R = m.r_out.loc[stf, pro, coo]
+    # input ratio at lowest operation point
+    r = m.r_out_min_fraction[stf, pro, coo]
+    min_fraction = m.process_dict['min-fraction'][(stf, sit, pro)]
 
-     online_factor = min_fraction * (r - R) / (1 - min_fraction)
-     throughput_factor = (R - min_fraction * r) / (1 - min_fraction)
-     if coo in m.com_env:
-         return (m.e_pro_out[tm, stf, sit, pro, coo] ==
-             m.dt * m.cap_pro[stf, sit, pro] * online_factor +
-             m.tau_pro[tm, stf, sit, pro] * throughput_factor)
-     else:
-         return (m.e_pro_out[tm, stf, sit, pro, coo] ==
-             (m.dt * m.cap_pro[stf, sit, pro] * online_factor +
-             m.tau_pro[tm, stf, sit, pro] * throughput_factor) *
-             m.eff_factor_dict[(stf, sit, pro)][tm])
+    online_factor = min_fraction * (r - R) / (1 - min_fraction)
+    throughput_factor = (R - min_fraction * r) / (1 - min_fraction)
+    if coo in m.com_env:
+        return (m.e_pro_out[tm, stf, sit, pro, coo] ==
+                m.dt * m.cap_pro[stf, sit, pro] * online_factor +
+                m.tau_pro[tm, stf, sit, pro] * throughput_factor)
+    else:
+        return (m.e_pro_out[tm, stf, sit, pro, coo] ==
+                (m.dt * m.cap_pro[stf, sit, pro] * online_factor +
+                 m.tau_pro[tm, stf, sit, pro] * throughput_factor) *
+                m.eff_factor_dict[(sit, pro)][tm])
 
 
 # lower bound <= process capacity <= upper bound
@@ -1242,6 +1234,11 @@ def res_initial_and_final_storage_state_rule(m, t, stf, sit, sto, com):
                 m.storage_dict['init'][(stf, sit, sto, com)])
     else:
         return pyomo.Constraint.Skip
+
+
+def res_initial_and_final_storage_state_var_rule(m, t, sit, sto, com):
+    return (m.e_sto_con[m.t[1], sit, sto, com] <=
+            m.e_sto_con[m.t[len(m.t)], sit, sto, com])
 
 
 # total CO2 output <= Global CO2 limit

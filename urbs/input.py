@@ -234,6 +234,10 @@ def pyomo_model_prep(data, timesteps):
     m.r_out_min_fraction = m.process_commodity.xs('Out', level='Direction')
     m.r_out_min_fraction = m.r_out_min_fraction['ratio-min']
     m.r_out_min_fraction = m.r_out_min_fraction[m.r_out_min_fraction > 0]
+    
+    # storges with fixed initial state
+    m.stor_init_bound = m.storage['init']
+    m.stor_init_bound = m.stor_init_bound[m.stor_init_bound >= 0]
 
     # derive invest factor from WACC, depreciation and discount untility
     m.process['invcost-factor'] = invcost_factor(
