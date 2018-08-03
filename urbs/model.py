@@ -100,11 +100,14 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         initialize=m.process.index.get_level_values('Process').unique(),
         doc='Set of conversion processes')
 
-    # tranmission (e.g. hvac, hvdc, pipeline...)
-    m.tra = pyomo.Set(
-        initialize=m.transmission.index.get_level_values('Transmission')
-                                       .unique(),
-        doc='Set of transmission technologies')
+    try:
+        # tranmission (e.g. hvac, hvdc, pipeline...)
+        m.tra = pyomo.Set(
+            initialize=m.transmission.index.get_level_values('Transmission')
+                                           .unique(),
+            doc='Set of transmission technologies')
+    except AttributeError:
+        pass
 
     # storage (e.g. hydrogen, pump storage)
     m.sto = pyomo.Set(
@@ -130,11 +133,14 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         within=m.stf*m.sit*m.pro,
         initialize=m.process.index,
         doc='Combinations of possible processes, e.g. (2020,North,Coal plant)')
-    m.tra_tuples = pyomo.Set(
-        within=m.stf*m.sit*m.sit*m.tra*m.com,
-        initialize=m.transmission.index,
-        doc='Combinations of possible transmissions, e.g. '
-            '(2020,South,Mid,hvac,Elec)')
+    try:
+        m.tra_tuples = pyomo.Set(
+            within=m.stf*m.sit*m.sit*m.tra*m.com,
+            initialize=m.transmission.index,
+            doc='Combinations of possible transmissions, e.g. '
+                '(2020,South,Mid,hvac,Elec)')
+    except AttributeError:
+        pass
     m.sto_tuples = pyomo.Set(
         within=m.stf*m.sit*m.sto*m.com,
         initialize=m.storage.index,
@@ -163,14 +169,17 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         doc='Processes that are still operational through stf_later'
             '(and the relevant years following), if built in stf'
             'in stf.')
-    m.operational_tra_tuples = pyomo.Set(
-        within=m.sit*m.sit*m.tra*m.com*m.stf*m.stf,
-        initialize=[(sit, sit_, tra, com, stf, stf_later)
-                    for (sit, sit_, tra, com, stf, stf_later)
-                    in op_tra_tuples(m.tra_tuples, m)],
-        doc='Transmissions that are still operational through stf_later'
-            '(and the relevant years following), if built in stf'
-            'in stf.')
+    try:
+        m.operational_tra_tuples = pyomo.Set(
+            within=m.sit*m.sit*m.tra*m.com*m.stf*m.stf,
+            initialize=[(sit, sit_, tra, com, stf, stf_later)
+                        for (sit, sit_, tra, com, stf, stf_later)
+                        in op_tra_tuples(m.tra_tuples, m)],
+            doc='Transmissions that are still operational through stf_later'
+                '(and the relevant years following), if built in stf'
+                'in stf.')
+    except AttributeError:
+        pass
     m.operational_sto_tuples = pyomo.Set(
         within=m.sit*m.sto*m.com*m.stf*m.stf,
         initialize=[(sit, sto, com, stf, stf_later)
@@ -188,13 +197,16 @@ def create_model(data, dt=1, timesteps=None, dual=False):
                     in rest_val_pro_tuples(m.pro_tuples, m)],
         doc='Processes built in stf that are operational through the last'
             'modeled stf')
-    m.rv_tra_tuples = pyomo.Set(
-        within=m.sit*m.sit*m.tra*m.com*m.stf,
-        initialize=[(sit, sit_, tra, com, stf)
-                    for (sit, sit_, tra, com, stf)
-                    in rest_val_tra_tuples(m.tra_tuples, m)],
-        doc='Transmissions built in stf that are operational through the last'
-            'modeled stf')
+    try:
+        m.rv_tra_tuples = pyomo.Set(
+            within=m.sit*m.sit*m.tra*m.com*m.stf,
+            initialize=[(sit, sit_, tra, com, stf)
+                        for (sit, sit_, tra, com, stf)
+                        in rest_val_tra_tuples(m.tra_tuples, m)],
+            doc='Transmissions built in stf that are operational through the last'
+                'modeled stf')
+    except AttributeError:
+        pass
     m.rv_sto_tuples = pyomo.Set(
         within=m.sit*m.sto*m.com*m.stf,
         initialize=[(sit, sto, com, stf)
@@ -210,12 +222,16 @@ def create_model(data, dt=1, timesteps=None, dual=False):
                     for (sit, pro, stf)
                     in inst_pro_tuples(m)],
         doc=' Installed processes that are still operational through stf')
-    m.inst_tra_tuples = pyomo.Set(
-        within=m.sit*m.sit*m.tra*m.com*m.stf,
-        initialize=[(sit, sit_, tra, com, stf)
-                    for (sit, sit_, tra, com, stf)
-                    in inst_tra_tuples(m)],
-        doc='Installed transmissions that are still operational through stf')
+    try:
+        m.inst_tra_tuples = pyomo.Set(
+            within=m.sit*m.sit*m.tra*m.com*m.stf,
+            initialize=[(sit, sit_, tra, com, stf)
+                        for (sit, sit_, tra, com, stf)
+                        in inst_tra_tuples(m)],
+            doc='Installed transmissions that are still operational through '
+                'stf')
+    except AttributeError:
+        pass
     m.inst_sto_tuples = pyomo.Set(
         within=m.sit*m.sto*m.com*m.stf,
         initialize=[(sit, sto, com, stf)
@@ -346,14 +362,17 @@ def create_model(data, dt=1, timesteps=None, dual=False):
     m.process['c_helper2'] = m.process['stf_dist'].apply(cost_helper2, m=m)
     m.process['cost_factor'] = m.process['c_helper'] * m.process['c_helper2']
 
-    m.transmission['stf_dist'] = (m.transmission['support_timeframe'].
-                                  apply(stf_dist, m=m))
-    m.transmission['c_helper'] = (m.transmission['support_timeframe'].
-                                  apply(cost_helper, m=m))
-    m.transmission['c_helper2'] = (m.transmission['stf_dist'].
-                                   apply(cost_helper2, m=m))
-    m.transmission['cost_factor'] = (m.transmission['c_helper'] *
-                                     m.transmission['c_helper2'])
+    try:
+        m.transmission['stf_dist'] = (m.transmission['support_timeframe'].
+                                      apply(stf_dist, m=m))
+        m.transmission['c_helper'] = (m.transmission['support_timeframe'].
+                                      apply(cost_helper, m=m))
+        m.transmission['c_helper2'] = (m.transmission['stf_dist'].
+                                       apply(cost_helper2, m=m))
+        m.transmission['cost_factor'] = (m.transmission['c_helper'] *
+                                         m.transmission['c_helper2'])
+    except AttributeError:
+        pass
 
     m.storage['stf_dist'] = m.storage['support_timeframe'].apply(stf_dist, m=m)
     m.storage['c_helper'] = (m.storage['support_timeframe']
@@ -410,23 +429,26 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         bounds=(0,1),
         doc='Fraction of demand that process output must meet (0 to 1)')
 
-    # transmission
-    m.cap_tra = pyomo.Var(
-        m.tra_tuples,
-        within=pyomo.NonNegativeReals,
-        doc='Total transmission capacity (MW)')
-    m.cap_tra_new = pyomo.Var(
-        m.tra_tuples,
-        within=pyomo.NonNegativeReals,
-        doc='New transmission capacity (MW)')
-    m.e_tra_in = pyomo.Var(
-        m.tm, m.tra_tuples,
-        within=pyomo.NonNegativeReals,
-        doc='Power flow into transmission line (MW) per timestep')
-    m.e_tra_out = pyomo.Var(
-        m.tm, m.tra_tuples,
-        within=pyomo.NonNegativeReals,
-        doc='Power flow out of transmission line (MW) per timestep')
+    try:
+        # transmission
+        m.cap_tra = pyomo.Var(
+            m.tra_tuples,
+            within=pyomo.NonNegativeReals,
+            doc='Total transmission capacity (MW)')
+        m.cap_tra_new = pyomo.Var(
+            m.tra_tuples,
+            within=pyomo.NonNegativeReals,
+            doc='New transmission capacity (MW)')
+        m.e_tra_in = pyomo.Var(
+            m.tm, m.tra_tuples,
+            within=pyomo.NonNegativeReals,
+            doc='Power flow into transmission line (MW) per timestep')
+        m.e_tra_out = pyomo.Var(
+            m.tm, m.tra_tuples,
+            within=pyomo.NonNegativeReals,
+            doc='Power flow out of transmission line (MW) per timestep')
+    except AttributeError:
+        pass
 
     # storage
     m.cap_sto_c = pyomo.Var(
@@ -587,28 +609,32 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         rule=def_pro_partial_timevar_output_rule,
         doc='e_pro_out = tau_pro * r_out * eff_factor')
 
-    # transmission
-    m.def_transmission_capacity = pyomo.Constraint(
-        m.tra_tuples,
-        rule=def_transmission_capacity_rule,
-        doc='total transmission capacity = inst-cap + new capacity')
-    m.def_transmission_output = pyomo.Constraint(
-        m.tm, m.tra_tuples,
-        rule=def_transmission_output_rule,
-        doc='transmission output = transmission input * efficiency')
-    m.res_transmission_input_by_capacity = pyomo.Constraint(
-        m.tm, m.tra_tuples,
-        rule=res_transmission_input_by_capacity_rule,
-        doc='transmission input <= total transmission capacity')
-    m.res_transmission_capacity = pyomo.Constraint(
-        m.tra_tuples,
-        rule=res_transmission_capacity_rule,
-        doc='transmission.cap-lo <= total transmission capacity <= '
-            'transmission.cap-up')
-    m.res_transmission_symmetry = pyomo.Constraint(
-        m.tra_tuples,
-        rule=res_transmission_symmetry_rule,
-        doc='total transmission capacity must be symmetric in both directions')
+    try:
+        # transmission
+        m.def_transmission_capacity = pyomo.Constraint(
+            m.tra_tuples,
+            rule=def_transmission_capacity_rule,
+            doc='total transmission capacity = inst-cap + new capacity')
+        m.def_transmission_output = pyomo.Constraint(
+            m.tm, m.tra_tuples,
+            rule=def_transmission_output_rule,
+            doc='transmission output = transmission input * efficiency')
+        m.res_transmission_input_by_capacity = pyomo.Constraint(
+            m.tm, m.tra_tuples,
+            rule=res_transmission_input_by_capacity_rule,
+            doc='transmission input <= total transmission capacity')
+        m.res_transmission_capacity = pyomo.Constraint(
+            m.tra_tuples,
+            rule=res_transmission_capacity_rule,
+            doc='transmission.cap-lo <= total transmission capacity <= '
+                'transmission.cap-up')
+        m.res_transmission_symmetry = pyomo.Constraint(
+            m.tra_tuples,
+            rule=res_transmission_symmetry_rule,
+            doc='total transmission capacity must be symmetric in both '
+                'directions')
+    except AttributeError:
+        pass
 
     # storage
     m.def_storage_state = pyomo.Constraint(
@@ -1093,51 +1119,55 @@ def res_sell_buy_symmetry_rule(m, stf, sit_in, pro_in, coin):
     else:
         return pyomo.Constraint.Skip
 
+try:
+    # transmission
 
-# transmission
-
-# transmission capacity == new capacity + existing capacity
-def def_transmission_capacity_rule(m, stf, sin, sout, tra, com):
-    if (sin, sout, tra, com, stf) in m.inst_tra_tuples:
-        return (m.cap_tra[stf, sin, sout, tra, com] ==
-                sum(m.cap_tra_new[stf_built, sin, sout, tra, com]
-                for stf_built in m.stf
-                if (sin, sout, tra, com, stf_built, stf) in
-                m.operational_tra_tuples) +
-                m.transmission_dict['inst-cap']
-                [(min(m.stf), sin, sout, tra, com)])
-    else:
-        return (m.cap_tra[stf, sin, sout, tra, com] ==
-                sum(m.cap_tra_new[stf_built, sin, sout, tra, com]
-                for stf_built in m.stf
-                if (sin, sout, tra, com, stf_built, stf) in
-                m.operational_tra_tuples))
-
-
-# transmission output == transmission input * efficiency
-def def_transmission_output_rule(m, tm, stf, sin, sout, tra, com):
-    return (m.e_tra_out[tm, stf, sin, sout, tra, com] ==
-            m.e_tra_in[tm, stf, sin, sout, tra, com] *
-            m.transmission_dict['eff'][(stf, sin, sout, tra, com)])
+    # transmission capacity == new capacity + existing capacity
+    def def_transmission_capacity_rule(m, stf, sin, sout, tra, com):
+        if (sin, sout, tra, com, stf) in m.inst_tra_tuples:
+            return (m.cap_tra[stf, sin, sout, tra, com] ==
+                    sum(m.cap_tra_new[stf_built, sin, sout, tra, com]
+                    for stf_built in m.stf
+                    if (sin, sout, tra, com, stf_built, stf) in
+                    m.operational_tra_tuples) +
+                    m.transmission_dict['inst-cap']
+                    [(min(m.stf), sin, sout, tra, com)])
+        else:
+            return (m.cap_tra[stf, sin, sout, tra, com] ==
+                    sum(m.cap_tra_new[stf_built, sin, sout, tra, com]
+                    for stf_built in m.stf
+                    if (sin, sout, tra, com, stf_built, stf) in
+                    m.operational_tra_tuples))
 
 
-# transmission input <= transmission capacity
-def res_transmission_input_by_capacity_rule(m, tm, stf, sin, sout, tra, com):
-    return (m.e_tra_in[tm, stf, sin, sout, tra, com] <=
-            m.dt * m.cap_tra[stf, sin, sout, tra, com])
+    # transmission output == transmission input * efficiency
+    def def_transmission_output_rule(m, tm, stf, sin, sout, tra, com):
+        return (m.e_tra_out[tm, stf, sin, sout, tra, com] ==
+                m.e_tra_in[tm, stf, sin, sout, tra, com] *
+                m.transmission_dict['eff'][(stf, sin, sout, tra, com)])
 
 
-# lower bound <= transmission capacity <= upper bound
-def res_transmission_capacity_rule(m, stf, sin, sout, tra, com):
-    return (m.transmission_dict['cap-lo'][(stf, sin, sout, tra, com)],
-            m.cap_tra[stf, sin, sout, tra, com],
-            m.transmission_dict['cap-up'][(stf, sin, sout, tra, com)])
+    # transmission input <= transmission capacity
+    def res_transmission_input_by_capacity_rule(m, tm, stf, sin, sout, tra, com):
+        return (m.e_tra_in[tm, stf, sin, sout, tra, com] <=
+                m.dt * m.cap_tra[stf, sin, sout, tra, com])
 
 
-# transmission capacity from A to B == transmission capacity from B to A
-def res_transmission_symmetry_rule(m, stf, sin, sout, tra, com):
-    return m.cap_tra[stf, sin, sout, tra, com] == (m.cap_tra
-                                                   [stf, sout, sin, tra, com])
+    # lower bound <= transmission capacity <= upper bound
+    def res_transmission_capacity_rule(m, stf, sin, sout, tra, com):
+        return (m.transmission_dict['cap-lo'][(stf, sin, sout, tra, com)],
+                m.cap_tra[stf, sin, sout, tra, com],
+                m.transmission_dict['cap-up'][(stf, sin, sout, tra, com)])
+
+
+    # transmission capacity from A to B == transmission capacity from B to A
+    def res_transmission_symmetry_rule(m, stf, sin, sout, tra, com):
+        return m.cap_tra[stf, sin, sout, tra, com] == (m.cap_tra
+                                                       [stf, sout, sin, tra, com])
+
+
+except AttributeError:
+    pass
 
 
 # storage
@@ -1281,70 +1311,120 @@ def def_costs_rule(m, cost_type):
 
     """
     if cost_type == 'Invest':
-        return m.costs[cost_type] == \
-            sum(m.cap_pro_new[p] *
-                m.process_dict['inv-cost'][p] *
-                m.process_dict['invcost-factor'][p]
-                for p in m.pro_tuples) + \
-            sum(m.cap_tra_new[t] *
-                m.transmission_dict['inv-cost'][t] *
-                m.transmission_dict['invcost-factor'][t]
-                for t in m.tra_tuples) + \
-            sum(m.cap_sto_p_new[s] *
-                m.storage_dict['inv-cost-p'][s] *
-                m.storage_dict['invcost-factor'][s] +
-                m.cap_sto_c_new[s] *
-                m.storage_dict['inv-cost-c'][s] *
-                m.storage_dict['invcost-factor'][s]
-                for s in m.sto_tuples) - \
-            sum(m.process_dict['inv-cost'][p] *
-                m.process_dict['rv-factor'][p]
-                for p in m.pro_tuples) + \
-            sum(m.cap_tra_new[t] *
-                m.transmission_dict['inv-cost'][t] *
-                m.transmission_dict['rv-factor'][t]
-                for t in m.tra_tuples) + \
-            sum(m.cap_sto_p_new[s] *
-                m.storage_dict['inv-cost-p'][s] *
-                m.storage_dict['rv-factor'][s] +
-                m.cap_sto_c_new[s] *
-                m.storage_dict['inv-cost-c'][s] *
-                m.storage_dict['rv-factor'][s]
-                for s in m.sto_tuples)
+        try:
+            return m.costs[cost_type] == \
+                sum(m.cap_pro_new[p] *
+                    m.process_dict['inv-cost'][p] *
+                    m.process_dict['invcost-factor'][p]
+                    for p in m.pro_tuples) + \
+                sum(m.cap_tra_new[t] *
+                    m.transmission_dict['inv-cost'][t] *
+                    m.transmission_dict['invcost-factor'][t]
+                    for t in m.tra_tuples) + \
+                sum(m.cap_sto_p_new[s] *
+                    m.storage_dict['inv-cost-p'][s] *
+                    m.storage_dict['invcost-factor'][s] +
+                    m.cap_sto_c_new[s] *
+                    m.storage_dict['inv-cost-c'][s] *
+                    m.storage_dict['invcost-factor'][s]
+                    for s in m.sto_tuples) - \
+                sum(m.process_dict['inv-cost'][p] *
+                    m.process_dict['rv-factor'][p]
+                    for p in m.pro_tuples) + \
+                sum(m.cap_tra_new[t] *
+                    m.transmission_dict['inv-cost'][t] *
+                    m.transmission_dict['rv-factor'][t]
+                    for t in m.tra_tuples) + \
+                sum(m.cap_sto_p_new[s] *
+                    m.storage_dict['inv-cost-p'][s] *
+                    m.storage_dict['rv-factor'][s] +
+                    m.cap_sto_c_new[s] *
+                    m.storage_dict['inv-cost-c'][s] *
+                    m.storage_dict['rv-factor'][s]
+                    for s in m.sto_tuples)
+        except AttributeError:
+            return m.costs[cost_type] == \
+                sum(m.cap_pro_new[p] *
+                    m.process_dict['inv-cost'][p] *
+                    m.process_dict['invcost-factor'][p]
+                    for p in m.pro_tuples) + \
+                sum(m.cap_sto_p_new[s] *
+                    m.storage_dict['inv-cost-p'][s] *
+                    m.storage_dict['invcost-factor'][s] +
+                    m.cap_sto_c_new[s] *
+                    m.storage_dict['inv-cost-c'][s] *
+                    m.storage_dict['invcost-factor'][s]
+                    for s in m.sto_tuples) - \
+                sum(m.process_dict['inv-cost'][p] *
+                    m.process_dict['rv-factor'][p]
+                    for p in m.pro_tuples) + \
+                sum(m.cap_sto_p_new[s] *
+                    m.storage_dict['inv-cost-p'][s] *
+                    m.storage_dict['rv-factor'][s] +
+                    m.cap_sto_c_new[s] *
+                    m.storage_dict['inv-cost-c'][s] *
+                    m.storage_dict['rv-factor'][s]
+                    for s in m.sto_tuples)
 
     elif cost_type == 'Fixed':
-        return m.costs[cost_type] == \
-            sum(m.cap_pro[p] * m.process_dict['fix-cost'][p] *
-                m.process_dict['cost_factor'][p]
-                for p in m.pro_tuples) + \
-            sum(m.cap_tra[t] * m.transmission_dict['fix-cost'][t] *
-                m.transmission_dict['cost_factor'][t]
-                for t in m.tra_tuples) + \
-            sum((m.cap_sto_p[s] * m.storage_dict['fix-cost-p'][s] +
-                m.cap_sto_c[s] * m.storage_dict['fix-cost-c'][s]) *
-                m.storage_dict['cost_factor'][s]
-                for s in m.sto_tuples)
+        try:
+            return m.costs[cost_type] == \
+                sum(m.cap_pro[p] * m.process_dict['fix-cost'][p] *
+                    m.process_dict['cost_factor'][p]
+                    for p in m.pro_tuples) + \
+                sum(m.cap_tra[t] * m.transmission_dict['fix-cost'][t] *
+                    m.transmission_dict['cost_factor'][t]
+                    for t in m.tra_tuples) + \
+                sum((m.cap_sto_p[s] * m.storage_dict['fix-cost-p'][s] +
+                    m.cap_sto_c[s] * m.storage_dict['fix-cost-c'][s]) *
+                    m.storage_dict['cost_factor'][s]
+                    for s in m.sto_tuples)
+        except AttributeError:
+            return m.costs[cost_type] == \
+                sum(m.cap_pro[p] * m.process_dict['fix-cost'][p] *
+                    m.process_dict['cost_factor'][p]
+                    for p in m.pro_tuples) + \
+                sum((m.cap_sto_p[s] * m.storage_dict['fix-cost-p'][s] +
+                    m.cap_sto_c[s] * m.storage_dict['fix-cost-c'][s]) *
+                    m.storage_dict['cost_factor'][s]
+                    for s in m.sto_tuples)
 
     elif cost_type == 'Variable':
-        return m.costs[cost_type] == \
-            sum(m.tau_pro[(tm,) + p] * m.weight *
-                m.process_dict['var-cost'][p] *
-                m.process_dict['cost_factor'][p]
-                for tm in m.tm
-                for p in m.pro_tuples) + \
-            sum(m.e_tra_in[(tm,) + t] * m.weight *
-                m.transmission_dict['var-cost'][t] *
-                m.transmission_dict['cost_factor'][t]
-                for tm in m.tm
-                for t in m.tra_tuples) + \
-            sum(m.e_sto_con[(tm,) + s] * m.weight *
-                m.storage_dict['var-cost-c'][s] *
-                m.storage_dict['cost_factor'][s] +
-                (m.e_sto_in[(tm,) + s] + m.e_sto_out[(tm,) + s]) *
-                m.weight * m.storage_dict['var-cost-p'][s] *
-                m.storage_dict['cost_factor'][s]
-                for tm in m.tm
-                for s in m.sto_tuples)
+        try:
+            return m.costs[cost_type] == \
+                sum(m.tau_pro[(tm,) + p] * m.weight *
+                    m.process_dict['var-cost'][p] *
+                    m.process_dict['cost_factor'][p]
+                    for tm in m.tm
+                    for p in m.pro_tuples) + \
+                sum(m.e_tra_in[(tm,) + t] * m.weight *
+                    m.transmission_dict['var-cost'][t] *
+                    m.transmission_dict['cost_factor'][t]
+                    for tm in m.tm
+                    for t in m.tra_tuples) + \
+                sum(m.e_sto_con[(tm,) + s] * m.weight *
+                    m.storage_dict['var-cost-c'][s] *
+                    m.storage_dict['cost_factor'][s] +
+                    (m.e_sto_in[(tm,) + s] + m.e_sto_out[(tm,) + s]) *
+                    m.weight * m.storage_dict['var-cost-p'][s] *
+                    m.storage_dict['cost_factor'][s]
+                    for tm in m.tm
+                    for s in m.sto_tuples)
+        except AttributeError:
+            return m.costs[cost_type] == \
+                sum(m.tau_pro[(tm,) + p] * m.weight *
+                    m.process_dict['var-cost'][p] *
+                    m.process_dict['cost_factor'][p]
+                    for tm in m.tm
+                    for p in m.pro_tuples) + \
+                sum(m.e_sto_con[(tm,) + s] * m.weight *
+                    m.storage_dict['var-cost-c'][s] *
+                    m.storage_dict['cost_factor'][s] +
+                    (m.e_sto_in[(tm,) + s] + m.e_sto_out[(tm,) + s]) *
+                    m.weight * m.storage_dict['var-cost-p'][s] *
+                    m.storage_dict['cost_factor'][s]
+                    for tm in m.tm
+                    for s in m.sto_tuples)
 
     elif cost_type == 'Fuel':
         return m.costs[cost_type] == sum(

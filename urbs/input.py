@@ -169,7 +169,6 @@ def pyomo_model_prep(data, timesteps):
     m.commodity = data['commodity']
     m.process = data['process']
     m.process_commodity = data['process_commodity']
-    m.transmission = data['transmission']
     m.storage = data['storage']
     m.demand = data['demand']
     m.supim = data['supim']
@@ -177,15 +176,20 @@ def pyomo_model_prep(data, timesteps):
     m.timesteps = timesteps
     m.dsm = data['dsm']
     m.eff_factor = data['eff_factor']
+    if not data['transmission'].empty:
+        m.transmission = data['transmission']
 
     # Create columns of support timeframe values
     m.commodity['support_timeframe'] = (m.commodity.index.
                                         get_level_values('support_timeframe'))
     m.process['support_timeframe'] = (m.process.index.
                                       get_level_values('support_timeframe'))
-    m.transmission['support_timeframe'] = (m.transmission.index.
-                                           get_level_values
-                                           ('support_timeframe'))
+    try:
+        m.transmission['support_timeframe'] = (m.transmission.index.
+                                               get_level_values
+                                               ('support_timeframe'))
+    except AttributeError:
+        pass
     m.storage['support_timeframe'] = (m.storage.index.
                                       get_level_values('support_timeframe'))
 
@@ -214,8 +218,11 @@ def pyomo_model_prep(data, timesteps):
     # installed units for intertemporal planning
     m.inst_pro = m.process['inst-cap']
     m.inst_pro = m.inst_pro[m.inst_pro > 0]
-    m.inst_tra = m.transmission['inst-cap']
-    m.inst_tra = m.inst_tra[m.inst_tra > 0]
+    try:
+        m.inst_tra = m.transmission['inst-cap']
+        m.inst_tra = m.inst_tra[m.inst_tra > 0]
+    except AttributeError:
+        pass
     m.inst_sto = m.storage['inst-cap-p']
     m.inst_sto = m.inst_sto[m.inst_sto > 0]
 
@@ -244,10 +251,13 @@ def pyomo_model_prep(data, timesteps):
         m,
         m.process['depreciation'],
         m.process['wacc'], m.process['support_timeframe'])
-    m.transmission['invcost-factor'] = invcost_factor(
-        m,
-        m.transmission['depreciation'],
-        m.transmission['wacc'], m.transmission['support_timeframe'])
+    try:
+        m.transmission['invcost-factor'] = invcost_factor(
+            m,
+            m.transmission['depreciation'],
+            m.transmission['wacc'], m.transmission['support_timeframe'])
+    except AttributeError:
+        pass
     m.storage['invcost-factor'] = invcost_factor(
         m,
         m.storage['depreciation'],
@@ -260,15 +270,18 @@ def pyomo_model_prep(data, timesteps):
         m.process['wacc'], m.process['support_timeframe'])
     m.process.loc[(m.process['rv-factor'] < 0) |
                   (m.process['rv-factor'].isnull()), 'rv-factor'] = 0
-    m.transmission['rv-factor'] = rv_factor(
-        m,
-        m.transmission['depreciation'],
-        m.transmission['wacc'], m.transmission['support_timeframe'])
     try:
-        m.transmission.loc[(m.transmission['rv-factor'] < 0) |
-                           (m.transmission['rv-factor'].isnull()),
-                           'rv-factor'] = 0
-    except TypeError:
+        m.transmission['rv-factor'] = rv_factor(
+            m,
+            m.transmission['depreciation'],
+            m.transmission['wacc'], m.transmission['support_timeframe'])
+        try:
+            m.transmission.loc[(m.transmission['rv-factor'] < 0) |
+                               (m.transmission['rv-factor'].isnull()),
+                               'rv-factor'] = 0
+        except TypeError:
+            pass
+    except AttributeError:
         pass
     m.storage['rv-factor'] = rv_factor(
         m,
@@ -295,14 +308,17 @@ def pyomo_model_prep(data, timesteps):
     m.process['c_helper2'] = m.process['stf_dist'].apply(cost_helper2, m=m)
     m.process['cost_factor'] = m.process['c_helper'] * m.process['c_helper2']
 
-    m.transmission['stf_dist'] = (m.transmission['support_timeframe'].
-                                  apply(stf_dist, m=m))
-    m.transmission['c_helper'] = (m.transmission['support_timeframe'].
-                                  apply(cost_helper, m=m))
-    m.transmission['c_helper2'] = (m.transmission['stf_dist'].
-                                   apply(cost_helper2, m=m))
-    m.transmission['cost_factor'] = (m.transmission['c_helper'] *
-                                     m.transmission['c_helper2'])
+    try:
+        m.transmission['stf_dist'] = (m.transmission['support_timeframe'].
+                                      apply(stf_dist, m=m))
+        m.transmission['c_helper'] = (m.transmission['support_timeframe'].
+                                      apply(cost_helper, m=m))
+        m.transmission['c_helper2'] = (m.transmission['stf_dist'].
+                                       apply(cost_helper2, m=m))
+        m.transmission['cost_factor'] = (m.transmission['c_helper'] *
+                                         m.transmission['c_helper2'])
+    except AttributeError:
+        pass
 
     m.storage['stf_dist'] = m.storage['support_timeframe'].apply(stf_dist, m=m)
     m.storage['c_helper'] = (m.storage['support_timeframe']
@@ -314,7 +330,10 @@ def pyomo_model_prep(data, timesteps):
     #
     m.commodity_dict = m.commodity.to_dict()
     m.process_dict = m.process.to_dict()  # Changed
-    m.transmission_dict = m.transmission.to_dict()  # Changed
+    try:
+        m.transmission_dict = m.transmission.to_dict()
+    except AttributeError:
+        pass
     m.storage_dict = m.storage.to_dict()  # Changed
     return m
 
