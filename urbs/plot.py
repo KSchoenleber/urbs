@@ -313,6 +313,283 @@ def plot(prob, stf, com, sit, dt, timesteps, timesteps_plot,
     return fig
 
 
+def hatches (Dataframe, x_1):
+    bars = Dataframe.patches
+    patterns =('x', '++', 'x', '++','x', '++','x', '++','x', '++','x', '++',
+               'x', '++','x', '++', 'x', '++')
+    #'x','..','\\\\','','++','oo','xx','....','**','.','/','o', '+')
+    hatches = [p for p in patterns for i in range(len(x_1))]
+    for bar, hatch in zip(bars, hatches):
+        bar.set_hatch(hatch)
+
+
+def groupi_bariii_plots(ax, group_size,maxi):
+    handles, labels = ax.get_legend_handles_labels()
+    
+    bar_bottom = handles[0][0].get_x() 
+    bar_width = handles[0][0].get_width()
+    ax_x = ax.get_xticks()
+    h = list(ax_x)
+    X= int (maxi / group_size)
+     
+    for i in range (1,X):
+        for j in range (0,group_size):
+            h[(i*group_size)+j]=  i * bar_width + h[(i*group_size)+j] 
+        i = i +1     
+    h.append(h[maxi-1] + 1 )
+    ax.set_xticks(h)     
+
+    for d in range (1,X):
+        for i in range (0,len (labels)): 
+            bar_bottom = handles[i][(d*group_size)-1].get_x()
+            handles[i][d*group_size].set_x(bar_bottom + 2*bar_width)
+            
+        for j in range ((d * group_size)+1,maxi):
+            for i in range (0,len (labels)):  
+                bar_bottom = handles[i][j].get_x()
+                handles[i][j].set_x(bar_bottom + 1 ) 
+
+
+def deduplicate_List(mylist):
+    newlist = []
+    for i in mylist:
+        if i not in newlist:
+            newlist.append(i)
+    return (newlist)
+
+
+def Preparation_legend (Lab , newlist , colors ):
+    hatchi = ['xx' , '++' ]
+
+    ci = [] 
+
+    for j in range (0, len (Lab)): 
+        circ1 = mpatches.Patch(facecolor = '#FFFFFF', hatch = hatchi[j],
+                               label= Lab [j]) 
+        ci.append(circ1)
+    
+    for i in range (0, len (newlist)):  
+        New = mpatches.Patch(facecolor=colors[i] ,label= newlist [i])
+        ci.append(New) 
+    return (ci) 
+
+
+def useful_function (newlist, al, lev , Lab):
+    me = []
+    we = []
+    
+    # Group same Data together & rename Columns 
+    for i in range (0 , len (newlist)):
+        # Example: Read only value of Biomass plant
+        you  = al.xs(newlist[i], level= str (lev ))  
+        x = you.rename(columns={Lab[0]: "New"+'_'+ newlist[i], Lab[1]:
+                       "Before"+'_'+ newlist[i]})
+        me.append(x.T)    
+        
+    #Important:  LISTE TO DataFrame: concat
+    df = pd.concat(me) 
+
+    # NAN to O 
+    Tab_New = df.fillna(0).T 
+    
+    # To replace Negativ Vakue near to 0 ----> 0 
+    #  Example: I used to replace -1.36exp-11 to 0 
+    Tab_New [ Tab_New   < 0] = 0 
+    
+    return ( Tab_New )
+
+
+def Same_Order_Sit_All_Sheets (c, d) : 
+    di = d.copy()        
+    di.index.set_labels ([c.index.labels [0], c.index.labels [1]],
+                         inplace=True) 
+    di.index.set_names (c.index.names, inplace=True)
+    index = di.index
+    return (index)
+		
+
+def Plot_Intemp (save_path , filename)(prob, stf, com, sit, dt, timesteps, timesteps_plot,
+         power_name='Power', energy_name='Energy',
+         power_unit='MW', energy_unit='MWh', time_unit='h',
+         figure_size=(16, 12)):
+    # Read Excel 
+    # xl = pd.ExcelFile(filename, sep=';', decimal='.', thousands=',' )
+    # Useful to read all sheets from Excel 
+    # names = xl.sheet_names  # see all sheet names
+    # Read specific sheet from Excel 
+    # Tab =xl.parse('Commodity sums' , header = [0,1,2], index_col= [0, 1 ] )
+    # Tab_2 =xl.parse('Process caps', index_col=[0,1,2], sep=';', thousands=',')
+    # Tab_3 =xl.parse('Storage caps', index_col=[0,1,2], sep=';', thousands=',')
+    # Get the required data
+    (created, consumed, stored, imported, exported,
+     dsm) = get_timeseries(prob, stf, com, sit, timesteps)
+
+    costs, cpro, ctra, csto = get_constants(prob)
+
+    # move retrieved/stored storage timeseries to created/consumed and
+    # rename storage columns back to 'storage' for color mapping
+    created = created.join(stored['Retrieved'])
+    consumed = consumed.join(stored['Stored'])
+    created.rename(columns={'Retrieved': 'Storage'}, inplace=True)
+    consumed.rename(columns={'Stored': 'Storage'}, inplace=True)
+	
+    ## sum yearly data:
+    sum_created = created.groupby(level=('Stf')).sum()
+    
+	# # Worksheet nr-2: Process caps 
+    
+	# Add Column Before 
+    cpro['Before'] = cpro['Total']-cpro['New']
+    # Remove Columns 
+    cpro.drop(['Total'], axis=1)
+
+    def get_Col_Ind (al, level):
+        # al: DataFrame & level: typ string 
+        Lab =list (al.columns.values) 
+        Ai = list (al.index.get_level_values(level))
+        return (Lab ,Ai)
+
+
+    # Call functions: get_Col_Ind + deduplicate_List
+    Lab, f = get_Col_Ind (al, 'Process')
+    newlist = deduplicate_List(f)
+    # Remove element from List 
+    newlist.remove('Slack powerplant') 
+    # Choose Colors 
+    colors = to_color('Delta')
+    # call function: Preparation_legend
+    Preparation_legend (Lab , newlist , colors) 
+    # call function: useful function
+    Tab_New  =useful_function (newlist,al,'Process',Lab)
+    # Use Groupby to group data together 
+    Sum_Process_Cap = Tab_New .groupby(level=('Stf')).sum ()
+    # Use Function:Same_Order_Sit_All_Sheets 
+    index = Same_Order_Sit_All_Sheets (c,  Tab_New )
+    Tab_New  =  Tab_New .reindex (index)
+
+
+    # # Worksheet nr-3: Storage caps 
+
+    #Add Column Before 
+    Tab_3['C Before'] = Tab_3['C Total']- Tab_3['C New']
+    # Remove Columns 
+    Tab_3 = Tab_3.drop(['Commodity','C Total', 'P Total','P New'], axis=1 )
+
+    # Call functions: get_Col_Ind + deduplicate_List
+    Lab_1, g = get_Col_Ind (Tab_3, 'Storage')
+    newlist_1 = deduplicate_List(g)
+    # Choose Colors 
+    colors_1 = ['#dfdfdf', '#f6cece']
+    # call function: Preparation_legend
+    Preparation_legend (Lab_1 , newlist_1 , colors_1 ) 
+    # call function: useful function
+    Tab_3_New  =useful_function (newlist_1, Tab_3, 'Storage',Lab_1 )
+    # Use Groupby to group data together 
+    Sum_Storage_Cap = Tab_3_New.groupby(level=('Stf')).sum ()
+    # Use Function:Same_Order_Sit_All_Sheets 
+    index = Same_Order_Sit_All_Sheets (c,  Tab_New )
+    Tab_3_New = Tab_3_New.reindex (index)
+    
+    # # PLOT:
+    
+    # Figure with 4 subplots
+	# X-Axis: Stf-Site: (Year/ North Mid South)
+	
+	
+    fig, axes = plt.subplots(nrows=4, ncols=1, sharex='row', figsize=(12,12), dpi=100 )
+    fig.subplots_adjust(wspace = 1.7 , hspace=0.5) # set space between subplots
+    #, sharey='col'
+ 
+    # 1 Subplot
+    pl_0= c.plot.bar(stacked=True, title='Created_Energie-Elec' ,
+                     figsize=(10,7),ax = axes[0] , color=['#007A37','#EDE300','#C6BCF0',
+                     '#F3AE00','#003359','#000000','#7AB3E1'],
+                     width = 1 ,legend=False)
+    pl_0.set(ylabel='Energy [MWh]')
+    #plt.gca().set_yscale('log')
+    groupi_bariii_plots(pl_0,3,12)
+
+    # 2 Subplot
+    pl_1=  Tab_New.plot.bar(stacked=True,figsize=(10,7), title='Process-Cap' ,
+    ax = axes[1],color= ['#007A37','#007A37','#EDE300','#EDE300','#C6BCF0','#C6BCF0','#000000','#000000','#F3AE00','#F3AE00','#7AB3E1','#7AB3E1','#00C5A1','#00C5A1','#00B259','#00B259','#003359','#003359'], legend = False, width = 1) 
+    hatches (pl_1, Tab_New )
+    #plt.gca().set_yscale('log')
+    pl_1.set(ylabel='Power [MW]') 
+    groupi_bariii_plots(pl_1, 3,12)
+ 
+    # 3 Subplot
+    pl_2= d.loc[:,['Retrieved']].plot.bar(stacked=True,figsize=(10,7), ax = axes[2] ,title='Storage-Retrieved', color= ['#A2D5F2'] , legend = False , width= 1)  
+    pl_2.set(ylabel='Energy [MWh]')
+    #plt.gca().set_yscale('log')
+    groupi_bariii_plots(pl_2, 3,12)
+
+    # 4 Subplot
+    pl_3= Tab_3_New.plot.bar(stacked=True,figsize=(10,7),sharex=axes[0], ax  = axes[3] , title='Storage-Cap',color= ['#dfdfdf','#dfdfdf','#f6cece','#f6cece'], legend = False, width = 1)
+    hatches (pl_3, Tab_3_New )
+    #plt.gca().set_yscale('log')
+    pl_3.set(xlabel='Stf-Site', ylabel='Power [MW]')
+    groupi_bariii_plots(pl_3 , 3, 12) 
+
+
+    # Preparation_Legend 
+    leg = Preparation_legend (Lab , newlist , colors ) 
+    handles_0, labels_0 = pl_2.get_legend_handles_labels()
+    circ = mpatches.Patch( facecolor= '#A2D5F2', label= labels_0 [0]) 
+    leg.append(circ)
+    colors_1 = ['#dfdfdf', '#f6cece']
+    for i in range (0, len (newlist_1)):  
+        New = mpatches.Patch(facecolor=colors_1[i] ,label= newlist_1 [i])
+        leg.append(New) 
+    axes[1].legend(handles = leg,fontsize= 'x-small' ,bbox_to_anchor=(1.01, 0.5), loc='center left')
+    #plt.savefig('Plot_11.png', bbox_inches='tight')
+   
+    plt.savefig(save_path + '-Detailed_Info_per_Stf-Sit.png', bbox_inches='tight')
+
+    #bbox_inches='tight'
+
+
+    # Figure with 4 subplots
+	# X-Axis: Stf (Year)
+	# Sum: North Mid South
+    fig, (axes) = plt.subplots(nrows=4, ncols=1, figsize=(12,12), dpi=100 ,sharex=True )
+    fig.subplots_adjust(wspace = 1.7 , hspace=0.5) # set space between subplots
+
+
+    # 1 Subplot
+    pl2_0 = Sum_Created.plot.bar(stacked=True, figsize=(10,10),ax = axes[0], title='Created_Elec_Energie / Year', color= ['#007A37','#EDE300','#C6BCF0','#F3AE00','#003359','#000000','#7AB3E1']  , legend = False)
+    pl2_0.set(ylabel='Energy [MWh]')
+
+    # 2 Subplot
+    pl2_1 = Sum_Process_Cap.plot.bar(stacked=True,figsize=(10,10),ax = axes[1],title='Process-Cap_Total_Sum',color= [ '#007A37','#007A37','#EDE300','#EDE300','#C6BCF0','#C6BCF0','#000000','#000000','#F3AE00','#F3AE00','#7AB3E1','#7AB3E1','#00C5A1','#00C5A1','#00B259','#00B259','#003359','#003359'], legend = False)  
+    hatches (pl2_1, Sum_Process_Cap )
+    pl2_1.set(ylabel='Power [MW]')
+
+
+    # 3 Subplot
+    pl2_2= Sum_Retrieved.loc[:,['Retrieved']].plot.bar(stacked=True, ax = axes[2],figsize=(10,10), title='Storage_Retrieved', color= ['#A2D5F2'], legend = False)    
+    pl2_2.set(ylabel='Energy [MWh]')
+
+    # 4 Subplot
+    pl2_3 = Sum_Storage_Cap.plot.bar(stacked=True,figsize=(10,10),ax = axes[3], title='Storage-Cap_Total_Sum',color= ['#dfdfdf','#dfdfdf','#f6cece','#f6cece'], legend = False )  
+    hatches (pl2_3, Sum_Storage_Cap )
+
+    pl2_3.set(xlabel='Stf', ylabel='Power [MW]')
+
+
+    # Preparation_Legend 
+    leg_2 = Preparation_legend (Lab , newlist , colors ) 
+    handles_0, labels_0 = pl2_2.get_legend_handles_labels()
+    circ = mpatches.Patch( facecolor= '#A2D5F2', label= labels_0 [0]) 
+    leg_2.append(circ)
+    colors_1 = ['#dfdfdf', '#f6cece']
+    for i in range (0, len (newlist_1)):  
+        New = mpatches.Patch(facecolor=colors_1[i] ,label= newlist_1 [i])
+        leg_2.append(New) 
+    axes[1].legend(handles = leg_2,bbox_to_anchor=(1, 0.5),fontsize= 'x-small'
+    ,loc='center left' )
+    plt.savefig(save_path + '-Detailed _Sum_Sit.png', bbox_inches='tight')
+
+
 def result_figures(prob, figure_basename, timesteps, plot_title_prefix=None,
                    plot_tuples=None, plot_sites_name={},
                    periods=None, extensions=None, **kwds):
