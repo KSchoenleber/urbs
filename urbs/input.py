@@ -115,13 +115,10 @@ def read_excel(input_files):
                             names=['support_timeframe'])
             ds.append(dsm)
             if 'TimeVarEff' in sheetnames:
-                eff_factor = (xls.parse('TimeVarEff')
-                                .set_index(['t']))
-
-                eff_factor.columns = split_columns(eff_factor.columns, '.')
-                eff_factor = pd.concat([eff_factor], axis=1,
-                                       keys=[support_timeframe],
+                eff_factor = (xls.parse('TimeVarEff').set_index(['t']))
+                eff_factor = pd.concat([eff_factor], keys=[support_timeframe],
                                        names=['support_timeframe'])
+                eff_factor.columns = split_columns(eff_factor.columns, '.')
                 ef.append(eff_factor)
 
         # prepare input data
@@ -241,100 +238,156 @@ def pyomo_model_prep(data, timesteps):
     m.r_out_min_fraction = m.process_commodity.xs('Out', level='Direction')
     m.r_out_min_fraction = m.r_out_min_fraction['ratio-min']
     m.r_out_min_fraction = m.r_out_min_fraction[m.r_out_min_fraction > 0]
-    
+
     # storges with fixed initial state
     m.stor_init_bound = m.storage['init']
     m.stor_init_bound = m.stor_init_bound[m.stor_init_bound >= 0]
 
     # derive invest factor from WACC, depreciation and discount untility
-    m.process['invcost-factor'] = invcost_factor(
-        m,
-        m.process['depreciation'],
-        m.process['wacc'], m.process['support_timeframe'])
+    m.process['discount'] = (m.global_prop.xs('Discount rate', level=1)
+                             .loc[m.global_prop.index.min()[0]]['value'])
+    m.process['stf_min'] = m.global_prop.index.min()[0]
+    m.process['stf_end'] = (m.global_prop.index.max()[0] +
+                            m.global_prop.loc[(max(m.commodity.
+                                              index.get_level_values
+                                              ('support_timeframe').unique()),
+                                              'Weight')]['value'] - 1)
     try:
-        m.transmission['invcost-factor'] = invcost_factor(
-            m,
-            m.transmission['depreciation'],
-            m.transmission['wacc'], m.transmission['support_timeframe'])
+        m.transmission['discount'] = (m.global_prop.xs('Discount rate', level=1)
+                                      .loc[m.global_prop.index.min()[0]]['value'])
+        m.transmission['stf_min'] = m.global_prop.index.min()[0]
+        m.transmission['stf_end'] = (m.global_prop.index.max()[0] +
+                                     m.global_prop.loc[(max(m.commodity.
+                                                       index.get_level_values
+                                                       ('support_timeframe').
+                                                       unique()), 'Weight')]
+                                                      ['value'] - 1)
     except AttributeError:
         pass
-    m.storage['invcost-factor'] = invcost_factor(
-        m,
-        m.storage['depreciation'],
-        m.storage['wacc'], m.storage['support_timeframe'])
+    m.storage['discount'] = (m.global_prop.xs('Discount rate', level=1)
+                             .loc[m.global_prop.index.min()[0]]['value'])
+    m.storage['stf_min'] = m.global_prop.index.min()[0]
+    m.storage['stf_end'] = (m.global_prop.index.max()[0] +
+                            m.global_prop.loc[(max(m.commodity.
+                                              index.get_level_values
+                                              ('support_timeframe').unique()),
+                                              'Weight')]['value'] - 1)
 
-    # derive rest value factor from WACC, depreciation and discount untility
-    m.process['rv-factor'] = rv_factor(
-        m,
-        m.process['depreciation'],
-        m.process['wacc'], m.process['support_timeframe'])
-    m.process.loc[(m.process['rv-factor'] < 0) |
-                  (m.process['rv-factor'].isnull()), 'rv-factor'] = 0
+    m.process['invcost-factor'] = (m.process.apply(lambda x:
+                                   invcost_factor(x['depreciation'],
+                                                  x['wacc'],
+                                                  x['discount'],
+                                                  x['support_timeframe'],
+                                                  x['stf_min']),
+                                   axis=1))
     try:
-        m.transmission['rv-factor'] = rv_factor(
-            m,
-            m.transmission['depreciation'],
-            m.transmission['wacc'], m.transmission['support_timeframe'])
-        try:
-            m.transmission.loc[(m.transmission['rv-factor'] < 0) |
-                               (m.transmission['rv-factor'].isnull()),
-                               'rv-factor'] = 0
-        except TypeError:
-            pass
+        m.transmission['invcost-factor'] = (m.transmission.apply(lambda x:
+                                            invcost_factor(
+                                                x['depreciation'],
+                                                x['wacc'],
+                                                x['discount'],
+                                                x['support_timeframe'],
+                                                x['stf_min']),
+                                            axis=1))
     except AttributeError:
         pass
-    m.storage['rv-factor'] = rv_factor(
-        m,
-        m.storage['depreciation'],
-        m.storage['wacc'], m.storage['support_timeframe'])
+    m.storage['invcost-factor'] = (m.storage.apply(lambda x:
+                                   invcost_factor(x['depreciation'],
+                                                  x['wacc'],
+                                                  x['discount'],
+                                                  x['support_timeframe'],
+                                                  x['stf_min']),
+                                   axis=1))
+
+    # derive overpay-factor from WACC, depreciation and discount untility
+    m.process['overpay-factor'] = (m.process.apply(lambda x:
+                                   overpay_factor(x['depreciation'],
+                                                  x['wacc'],
+                                                  x['discount'],
+                                                  x['support_timeframe'],
+                                                  x['stf_min'],
+                                                  x['stf_end']),
+                                   axis=1))
+    m.process.loc[(m.process['overpay-factor'] < 0) |
+                  (m.process['overpay-factor'].isnull()), 'overpay-factor'] = 0
     try:
-        m.storage.loc[(m.storage['rv-factor'] < 0) |
-                      (m.storage['rv-factor'].isnull()), 'rv-factor'] = 0
-    except TypeError:
+        m.transmission['overpay-factor'] = (m.transmission.apply(lambda x:
+                                            overpay_factor(
+                                                x['depreciation'],
+                                                x['wacc'],
+                                                x['discount'],
+                                                x['support_timeframe'],
+                                                x['stf_min'],
+                                                x['stf_end']),
+                                            axis=1))
+        m.transmission.loc[(m.transmission['overpay-factor'] < 0) |
+                           (m.transmission['overpay-factor'].isnull()),
+                           'overpay-factor'] = 0
+    except AttributeError:
+        pass
+    try:
+        m.storage['overpay-factor'] = (m.storage.apply(lambda x:
+                                       overpay_factor(x['depreciation'],
+                                                      x['wacc'],
+                                                      x['discount'],
+                                                      x['support_timeframe'],
+                                                      x['stf_min'],
+                                                      x['stf_end']),
+                                       axis=1))
+
+        m.storage.loc[(m.storage['overpay-factor'] < 0) |
+                      (m.storage['overpay-factor'].isnull()),
+                      'overpay-factor'] = 0
+    except ValueError:
         pass
 
     # Derive multiplier for all energy based costs
     m.commodity['stf_dist'] = (m.commodity['support_timeframe'].
                                apply(stf_dist, m=m))
-    m.commodity['c_helper'] = (m.commodity['support_timeframe'].
-                               apply(cost_helper, m=m))
-    m.commodity['c_helper2'] = m.commodity['stf_dist'].apply(cost_helper2, m=m)
-    m.commodity['cost_factor'] = (m.commodity['c_helper'] *
-                                  m.commodity['c_helper2'])
+    m.commodity['discount-factor'] = (m.commodity['support_timeframe'].
+                                      apply(discount_factor, m=m))
+    m.commodity['eff-distance'] = (m.commodity['stf_dist'].
+                                   apply(effective_distance, m=m))
+    m.commodity['cost_factor'] = (m.commodity['discount-factor'] *
+                                  m.commodity['eff-distance'])
 
     m.process['stf_dist'] = m.process['support_timeframe'].apply(stf_dist, m=m)
-    m.process['c_helper'] = (m.process['support_timeframe'].
-                             apply(cost_helper, m=m))
-    m.process['c_helper2'] = m.process['stf_dist'].apply(cost_helper2, m=m)
-    m.process['cost_factor'] = m.process['c_helper'] * m.process['c_helper2']
+    m.process['discount-factor'] = (m.process['support_timeframe'].
+                                    apply(discount_factor, m=m))
+    m.process['eff-distance'] = (m.process['stf_dist'].
+                                 apply(effective_distance, m=m))
+    m.process['cost_factor'] = (m.process['discount-factor'] *
+                                m.process['eff-distance'])
 
     try:
         m.transmission['stf_dist'] = (m.transmission['support_timeframe'].
                                       apply(stf_dist, m=m))
-        m.transmission['c_helper'] = (m.transmission['support_timeframe'].
-                                      apply(cost_helper, m=m))
-        m.transmission['c_helper2'] = (m.transmission['stf_dist'].
-                                       apply(cost_helper2, m=m))
-        m.transmission['cost_factor'] = (m.transmission['c_helper'] *
-                                         m.transmission['c_helper2'])
+        m.transmission['discount-factor'] = (m.transmission['support_timeframe'].
+                                             apply(discount_factor, m=m))
+        m.transmission['eff-distance'] = (m.transmission['stf_dist'].
+                                          apply(effective_distance, m=m))
+        m.transmission['cost_factor'] = (m.transmission['discount-factor'] *
+                                         m.transmission['eff-distance'])
     except AttributeError:
         pass
 
     m.storage['stf_dist'] = m.storage['support_timeframe'].apply(stf_dist, m=m)
-    m.storage['c_helper'] = (m.storage['support_timeframe']
-                             .apply(cost_helper, m=m))
-    m.storage['c_helper2'] = m.storage['stf_dist'].apply(cost_helper2, m=m)
-    m.storage['cost_factor'] = m.storage['c_helper'] * m.storage['c_helper2']
+    m.storage['discount-factor'] = (m.storage['support_timeframe'].
+                                    apply(discount_factor, m=m))
+    m.storage['eff-distance'] = (m.storage['stf_dist'].
+                                 apply(effective_distance, m=m))
+    m.storage['cost_factor'] = (m.storage['discount-factor'] *
+                                m.storage['eff-distance'])
 
     # Converting Data frames to dictionaries
     #
     m.commodity_dict = m.commodity.to_dict()
-    m.process_dict = m.process.to_dict()  # Changed
+    m.process_dict = m.process.to_dict()
     try:
         m.transmission_dict = m.transmission.to_dict()
     except AttributeError:
         pass
-    m.storage_dict = m.storage.to_dict()  # Changed
+    m.storage_dict = m.storage.to_dict()
     return m
 
 

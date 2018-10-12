@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def invcost_factor(m, n, i, year_built):
+def invcost_factor(n, i, j, year_built, stf_min):
     """Investment cost factor formula.
 
     Evaluates the factor multiplied to the invest costs
@@ -13,21 +13,27 @@ def invcost_factor(m, n, i, year_built):
         year_built: year utility is built
         j: discount rate for intertmeporal planning
     """
-    j = (m.global_prop.xs('Discount rate', level=1)
-         .loc[m.global_prop.index.min()[0]]['value'])
+
     if j == 0:
-        return n * ((1+i) ** n * i)/((1+i) ** n - 1)
+        if i == 0:
+            return 1
+        else:
+            return n * ((1+i) ** n * i)/((1+i) ** n - 1)
     else:
-        return ((1+j) ** (-(year_built-m.global_prop.index.min()[0])) *
-                (i * (1+i) ** n * ((1+j) ** n - 1)) /
-                (j * (1+j) ** n * ((1+i) ** n - 1)))
+        if i == 0:
+            return ((1+j) ** (1-(year_built-stf_min)) *
+                    ((1+j) ** n - 1) / (n * j * (1+j) ** n))
+        else:
+            return ((1+j) ** (1-(year_built-stf_min)) *
+                    (i * (1+i) ** n * ((1+j) ** n - 1)) /
+                    (j * (1+j) ** n * ((1+i) ** n - 1)))
 
 
-def rv_factor(m, n, i, year_built):
-    """Rest value factor formula.
+def overpay_factor(n, i, j, year_built, stf_min, stf_end):
+    """Overpay value factor formula.
 
     Evaluates the factor multiplied to the invest costs
-    for the rest value of a unit after the end of the
+    for all annuity payments of a unit after the end of the
     optimization period.
 
     Args:
@@ -37,16 +43,22 @@ def rv_factor(m, n, i, year_built):
         j: discount rate for intertmeporal planning
         k: operational time after simulation horizon
     """
-    j = (m.global_prop.xs('Discount rate', level=1)
-         .loc[m.global_prop.index.min()[0]]['value'])
-    k = (year_built + n) - m.global_prop.index.max()[0] - 1
+
+    k = (year_built + n) - stf_end - 1
 
     if j == 0:
-        return k * ((1+i) ** n * i)/((1+i) ** n - 1)
+        if i == 0:
+            return k / n
+        else:
+            return k * ((1+i) ** n * i)/((1+i) ** n - 1)
     else:
-        return ((1+j) ** (-(year_built-m.global_prop.index.min()[0])) *
-                (i * (1+i)** n * ((1+j) ** k - 1)) /
-                (j * (1+j) ** n * ((1+i) ** n - 1)))
+        if i == 0:
+            return ((1+j) ** (1-(year_built-stf_min)) *
+                    ((1+j) ** k - 1) / (n * j * (1+j) ** n))
+        else:
+            return ((1+j) ** (1-(year_built-stf_min)) *
+                    (i * (1+i) ** n * ((1+j) ** k - 1)) /
+                    (j * (1+j) ** n * ((1+i) ** n - 1)))
 
 
 # Energy related costs
@@ -59,21 +71,23 @@ def stf_dist(stf, m):
 
     for s in sorted_stf:
         if s == max(sorted_stf):
-            dist.append(1)
+            dist.append(m.global_prop.loc[(s, 'Weight')]['value'])
         else:
             dist.append(sorted_stf[sorted_stf.index(s) + 1] - s)
 
     return dist[sorted_stf.index(stf)]
 
 
-def cost_helper(stf, m):
+def discount_factor(stf, m):
+    """Discount for any payment made in the year stf
+    """
     j = (m.global_prop.xs('Discount rate', level=1)
          .loc[m.global_prop.index.min()[0]]['value'])
 
     return (1+j) ** (1-(stf-m.global_prop.index.min()[0]))
 
 
-def cost_helper2(dist, m):
+def effective_distance(dist, m):
     """Factor for variable, fuel, purchase, sell, and fix costs.
     Calculated by repetition of modeled stfs and discount utility.
     """
@@ -150,8 +164,9 @@ def op_pro_tuples(pro_tuple, m):
         for stf_later in sorted_stf:
             index_helper = sorted_stf.index(stf_later)
             if stf_later == max(sorted_stf):
-                if stf_later <= stf + m.process.loc[(stf, sit, pro),
-                                                    'depreciation']:
+                if (stf_later +
+                   m.global_prop.loc[(max(sorted_stf), 'Weight'), 'value'] - 1
+                   <= stf + m.process.loc[(stf, sit, pro), 'depreciation']):
                     op_pro.append((sit, pro, stf, stf_later))
             elif (sorted_stf[index_helper+1] <=
                   stf + m.process.loc[(stf, sit, pro), 'depreciation'] and
@@ -173,9 +188,10 @@ def op_tra_tuples(tra_tuple, m):
         for stf_later in sorted_stf:
             index_helper = sorted_stf.index(stf_later)
             if stf_later == max(sorted_stf):
-                if (stf_later <=
-                    stf + m.transmission.loc[(stf, sit1, sit2, tra, com),
-                                             'depreciation']):
+                if (stf_later +
+                   m.global_prop.loc[(max(sorted_stf), 'Weight'), 'value'] - 1
+                   <= stf + m.transmission.loc[(stf, sit1, sit2, tra, com),
+                                               'depreciation']):
                     op_tra.append((sit1, sit2, tra, com, stf, stf_later))
             elif (sorted_stf[index_helper+1] <=
                   stf + m.transmission.loc[(stf, sit1, sit2, tra, com),
@@ -198,8 +214,10 @@ def op_sto_tuples(sto_tuple, m):
         for stf_later in sorted_stf:
             index_helper = sorted_stf.index(stf_later)
             if stf_later == max(sorted_stf):
-                if stf_later <= stf + m.storage.loc[(stf, sit, sto, com),
-                                                    'depreciation']:
+                if (stf_later +
+                   m.global_prop.loc[(max(sorted_stf), 'Weight'), 'value'] - 1
+                   <= stf + m.storage.loc[(stf, sit, sto, com),
+                                          'depreciation']):
                     op_sto.append((sit, sto, com, stf, stf_later))
             elif (sorted_stf[index_helper+1] <=
                   stf +
@@ -210,48 +228,6 @@ def op_sto_tuples(sto_tuple, m):
                 pass
 
     return op_sto
-
-
-def rest_val_pro_tuples(pro_tuple, m):
-    """ Tuples for rest value determination of units.
-
-        The last entry represents the remaining life time after the end of the
-        modeled time frame.
-    """
-    rv_pro = []
-
-    for (stf, sit, pro) in pro_tuple:
-        if stf + m.process.loc[(stf, sit, pro), 'depreciation'] > max(m.stf):
-            rv_pro.append((sit, pro, stf))
-
-    return rv_pro
-
-
-def rest_val_tra_tuples(tra_tuple, m):
-    """ s.a. rest_val_pro_tuples
-    """
-    rv_tra = []
-
-    for (stf, sit1, sit2, tra, com) in tra_tuple:
-        if (stf +
-            m.transmission.loc[(stf, sit1, sit2, tra, com), 'depreciation'] >
-            max(m.stf)):
-            rv_tra.append((sit1, sit2, tra, com, stf))
-
-    return rv_tra
-
-
-def rest_val_sto_tuples(sto_tuple, m):
-    """ s.a. rest_val_pro_tuples
-    """
-    rv_sto = []
-
-    for (stf, sit, sto, com) in sto_tuple:
-        if (stf + m.storage.loc[(stf, sit, sto, com), 'depreciation'] >
-            max(m.stf)):
-            rv_sto.append((sit, sto, com, stf))
-
-    return rv_sto
 
 
 def inst_pro_tuples(m):
@@ -268,9 +244,10 @@ def inst_pro_tuples(m):
         for stf_later in sorted_stf:
             index_helper = sorted_stf.index(stf_later)
             if stf_later == max(m.stf):
-                if (stf_later <
-                    min(m.stf) + m.process.loc[(stf, sit, pro),
-                                               'lifetime']):
+                if (stf_later +
+                   m.global_prop.loc[(max(sorted_stf), 'Weight'), 'value'] - 1
+                   < min(m.stf) + m.process.loc[(stf, sit, pro),
+                                                'lifetime']):
                     inst_pro.append((sit, pro, stf_later))
             elif (sorted_stf[index_helper+1] <=
                   min(m.stf) + m.process.loc[(stf, sit, pro),
@@ -290,10 +267,11 @@ def inst_tra_tuples(m):
         for stf_later in sorted_stf:
             index_helper = sorted_stf.index(stf_later)
             if stf_later == max(m.stf):
-                if (stf_later <
-                    min(m.stf) +
-                    m.transmission.loc[(stf, sit1, sit2, tra, com),
-                                       'lifetime']):
+                if (stf_later +
+                   m.global_prop.loc[(max(sorted_stf), 'Weight'), 'value'] - 1
+                   < min(m.stf) +
+                   m.transmission.loc[(stf, sit1, sit2, tra, com),
+                                      'lifetime']):
                     inst_tra.append((sit1, sit2, tra, com, stf_later))
             elif (sorted_stf[index_helper+1] <=
                   min(m.stf) + m.transmission.loc[(stf, sit1, sit2, tra, com),
@@ -313,9 +291,10 @@ def inst_sto_tuples(m):
         for stf_later in sorted_stf:
             index_helper = sorted_stf.index(stf_later)
             if stf_later == max(m.stf):
-                if (stf_later <
-                    min(m.stf) + m.storage.loc[(stf, sit, sto, com),
-                                               'lifetime']):
+                if (stf_later +
+                   m.global_prop.loc[(max(sorted_stf), 'Weight'), 'value'] - 1
+                   < min(m.stf) + m.storage.loc[(stf, sit, sto, com),
+                                                'lifetime']):
                     inst_sto.append((sit, sto, com, stf_later))
             elif (sorted_stf[index_helper+1] <=
                   min(m.stf) + m.storage.loc[(stf, sit, sto, com),
@@ -347,12 +326,12 @@ def dsm_down_time_tuples(time, sit_com_tuple, m):
 
     for (stf, site, commodity) in sit_com_tuple:
         for step1 in time:
-            for step2 in range(step1
-                               - max(int(delay[stf, site, commodity]
-                                     / m.dt.value), 1),
-                               step1
-                               + max(int(delay[stf, site, commodity]
-                                     / m.dt.value), 1) + 1):
+            for step2 in range(step1 -
+                               max(int(delay[stf, site, commodity] /
+                                   m.dt.value), 1),
+                               step1 +
+                               max(int(delay[stf, site, commodity] /
+                                   m.dt.value), 1) + 1):
                 if lb <= step2 <= ub:
                     time_list.append((step1, step2, stf, site, commodity))
 

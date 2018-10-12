@@ -189,32 +189,6 @@ def create_model(data, dt=1, timesteps=None, dual=False):
             '(and the relevant years following), if built in stf'
             'in stf.')
 
-    # tuples for residual value of technologies
-    m.rv_pro_tuples = pyomo.Set(
-        within=m.sit*m.pro*m.stf,
-        initialize=[(sit, pro, stf)
-                    for (sit, pro, stf)
-                    in rest_val_pro_tuples(m.pro_tuples, m)],
-        doc='Processes built in stf that are operational through the last'
-            'modeled stf')
-    try:
-        m.rv_tra_tuples = pyomo.Set(
-            within=m.sit*m.sit*m.tra*m.com*m.stf,
-            initialize=[(sit, sit_, tra, com, stf)
-                        for (sit, sit_, tra, com, stf)
-                        in rest_val_tra_tuples(m.tra_tuples, m)],
-            doc='Transmissions built in stf that are operational through the last'
-                'modeled stf')
-    except AttributeError:
-        pass
-    m.rv_sto_tuples = pyomo.Set(
-        within=m.sit*m.sto*m.com*m.stf,
-        initialize=[(sit, sto, com, stf)
-                    for (sit, sto, com, stf)
-                    in rest_val_sto_tuples(m.sto_tuples, m)],
-        doc='Storages built in stf that are operational through the last'
-            'modeled stf')
-
     # tuples for rest lifetime of installed capacities of technologies
     m.inst_pro_tuples = pyomo.Set(
         within=m.sit*m.pro*m.stf,
@@ -326,9 +300,11 @@ def create_model(data, dt=1, timesteps=None, dual=False):
     m.pro_timevar_output_tuples = pyomo.Set(
         within=m.stf*m.sit*m.pro*m.com,
         initialize=[(stf, site, process, commodity)
-                    for (stf, site, process) in m.eff_factor.columns.values
-                    for (s, pro, commodity) in m.r_out.index
-                    if process == pro and s == stf],
+                    for stf in m.eff_factor.index.levels[0]
+                    for (site, process) in m.eff_factor.columns
+                    for (st, pro, commodity) in m.r_out.index
+                    if process == pro and st == stf and commodity not in
+                    m.com_env],
         doc='Outputs of processes with time dependent efficiency')
 
     # proportional process type subsets
@@ -346,39 +322,6 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         within=m.stf*m.sit*m.sto*m.com,
         initialize=m.stor_init_bound.index,
         doc='storages with fixed initial state')
-
-    # Derive multiplier for all energy based costs
-    m.commodity['stf_dist'] = (m.commodity['support_timeframe'].
-                               apply(stf_dist, m=m))
-    m.commodity['c_helper'] = (m.commodity['support_timeframe'].
-                               apply(cost_helper, m=m))
-    m.commodity['c_helper2'] = m.commodity['stf_dist'].apply(cost_helper2, m=m)
-    m.commodity['cost_factor'] = (m.commodity['c_helper'] *
-                                  m.commodity['c_helper2'])
-
-    m.process['stf_dist'] = m.process['support_timeframe'].apply(stf_dist, m=m)
-    m.process['c_helper'] = (m.process['support_timeframe'].
-                             apply(cost_helper, m=m))
-    m.process['c_helper2'] = m.process['stf_dist'].apply(cost_helper2, m=m)
-    m.process['cost_factor'] = m.process['c_helper'] * m.process['c_helper2']
-
-    try:
-        m.transmission['stf_dist'] = (m.transmission['support_timeframe'].
-                                      apply(stf_dist, m=m))
-        m.transmission['c_helper'] = (m.transmission['support_timeframe'].
-                                      apply(cost_helper, m=m))
-        m.transmission['c_helper2'] = (m.transmission['stf_dist'].
-                                       apply(cost_helper2, m=m))
-        m.transmission['cost_factor'] = (m.transmission['c_helper'] *
-                                         m.transmission['c_helper2'])
-    except AttributeError:
-        pass
-
-    m.storage['stf_dist'] = m.storage['support_timeframe'].apply(stf_dist, m=m)
-    m.storage['c_helper'] = (m.storage['support_timeframe']
-                             .apply(cost_helper, m=m))
-    m.storage['c_helper2'] = m.storage['stf_dist'].apply(cost_helper2, m=m)
-    m.storage['cost_factor'] = m.storage['c_helper'] * m.storage['c_helper2']
 
     # Variables
 
@@ -709,6 +652,10 @@ def create_model(data, dt=1, timesteps=None, dual=False):
         rule=res_global_co2_limit_rule,
         doc='total co2 commodity output <= global.prop CO2 limit')
 
+    m.res_global_co2_budget = pyomo.Constraint(
+        rule=res_global_co2_budget_rule,
+        doc='total co2 commodity output <= global.prop CO2 limit')
+
     # costs
     m.def_costs = pyomo.Constraint(
         m.cost_type,
@@ -802,8 +749,8 @@ def def_dsm_variables_rule(m, tm, stf, sit, com):
 # DSMup <= Cup (threshold capacity of DSMup)
 def res_dsm_upward_rule(m, tm, stf, sit, com):
     return m.dsm_up[tm, stf, sit, com] <= (m.dt *
-                                      m.dsm_dict['cap-max-up']
-                                      [(stf, sit, com)])
+                                           m.dsm_dict['cap-max-up']
+                                           [(stf, sit, com)])
 
 
 # DSMdo <= Cdo (threshold capacity of DSMdo)
@@ -958,15 +905,15 @@ def res_env_total_rule(m, stf, sit, com, com_type):
 def def_process_capacity_rule(m, stf, sit, pro):
     if (sit, pro, stf) in m.inst_pro_tuples:
         return (m.cap_pro[stf, sit, pro] ==
-            sum(m.cap_pro_new[stf_built, sit, pro]
-            for stf_built in m.stf
-            if (sit, pro, stf_built, stf) in m.operational_pro_tuples) + 
-            m.process_dict['inst-cap'][(min(m.stf), sit, pro)])
+                sum(m.cap_pro_new[stf_built, sit, pro]
+                for stf_built in m.stf
+                if (sit, pro, stf_built, stf) in m.operational_pro_tuples) +
+                m.process_dict['inst-cap'][(min(m.stf), sit, pro)])
     else:
         return (m.cap_pro[stf, sit, pro] ==
-            sum(m.cap_pro_new[stf_built, sit, pro]
-            for stf_built in m.stf
-            if (sit, pro, stf_built, stf) in m.operational_pro_tuples))
+                sum(m.cap_pro_new[stf_built, sit, pro]
+                for stf_built in m.stf
+                if (sit, pro, stf_built, stf) in m.operational_pro_tuples))
 
 
 # process input power == process throughput * input ratio
@@ -1047,13 +994,9 @@ def def_partial_process_output_rule(m, tm, stf, sit, pro, coo):
 
 
 def def_pro_timevar_output_rule(m, tm, stf, sit, pro, com):
-    if com in m.com_env:
-        return(m.e_pro_out[tm, stf, sit, pro, com] ==
-               m.tau_pro[tm, stf, sit, pro] * m.r_out_dict[(stf, pro, com)])
-    else:
-        return(m.e_pro_out[tm, stf, sit, pro, com] ==
-               m.tau_pro[tm, stf, sit, pro] * m.r_out_dict[(stf, pro, com)] *
-               m.eff_factor_dict[(stf, sit, pro)][tm])
+    return(m.e_pro_out[tm, stf, sit, pro, com] ==
+           m.tau_pro[tm, stf, sit, pro] * m.r_out_dict[(stf, pro, com)] *
+           m.eff_factor_dict[(sit, pro)][stf, tm])
 
 
 def def_pro_partial_timevar_output_rule(m, tm, stf, sit, pro, coo):
@@ -1065,15 +1008,10 @@ def def_pro_partial_timevar_output_rule(m, tm, stf, sit, pro, coo):
 
     online_factor = min_fraction * (r - R) / (1 - min_fraction)
     throughput_factor = (R - min_fraction * r) / (1 - min_fraction)
-    if coo in m.com_env:
-        return (m.e_pro_out[tm, stf, sit, pro, coo] ==
-                m.dt * m.cap_pro[stf, sit, pro] * online_factor +
-                m.tau_pro[tm, stf, sit, pro] * throughput_factor)
-    else:
-        return (m.e_pro_out[tm, stf, sit, pro, coo] ==
-                (m.dt * m.cap_pro[stf, sit, pro] * online_factor +
-                 m.tau_pro[tm, stf, sit, pro] * throughput_factor) *
-                m.eff_factor_dict[(sit, pro)][tm])
+    return (m.e_pro_out[tm, stf, sit, pro, coo] ==
+            (m.dt * m.cap_pro[stf, sit, pro] * online_factor +
+             m.tau_pro[tm, stf, sit, pro] * throughput_factor) *
+            m.eff_factor_dict[(sit, pro)][(stf, tm)])
 
 
 # lower bound <= process capacity <= upper bound
@@ -1193,13 +1131,14 @@ def def_storage_power_rule(m, stf, sit, sto, com):
                 for stf_built in m.stf
                 if (sit, sto, com, stf_built, stf) in
                     m.operational_sto_tuples) +
-                    m.storage_dict['inst-cap-p'][(min(m.stf), sit, sto, com)])
+                m.storage_dict['inst-cap-p'][(min(m.stf), sit, sto, com)])
     else:
         return (m.cap_sto_p[stf, sit, sto, com] ==
                 sum(m.cap_sto_p_new[stf_built, sit, sto, com]
                 for stf_built in m.stf
                 if (sit, sto, com, stf_built, stf) in m.operational_sto_tuples)
                 )
+
 
 # storage capacity == new storage capacity + existing storage capacity
 def def_storage_capacity_rule(m, stf, sit, sto, com):
@@ -1209,25 +1148,25 @@ def def_storage_capacity_rule(m, stf, sit, sto, com):
                 for stf_built in m.stf
                 if (sit, sto, com, stf_built, stf) in
                     m.operational_sto_tuples) +
-                    m.storage_dict['inst-cap-c'][(min(m.stf), sit, sto, com)])
+                m.storage_dict['inst-cap-c'][(min(m.stf), sit, sto, com)])
     else:
         return (m.cap_sto_c[stf, sit, sto, com] ==
                 sum(m.cap_sto_c_new[stf_built, sit, sto, com]
-                for stf_built in m.stf
-                if (sit, sto, com, stf_built, stf) in m.operational_sto_tuples)
-                )
+                    for stf_built in m.stf
+                    if (sit, sto, com, stf_built, stf) in
+                    m.operational_sto_tuples))
 
 
 # storage input <= storage power
 def res_storage_input_by_power_rule(m, t, stf, sit, sto, com):
     return (m.e_sto_in[t, stf, sit, sto, com] <= m.dt *
-           m.cap_sto_p[stf, sit, sto, com])
+            m.cap_sto_p[stf, sit, sto, com])
 
 
 # storage output <= storage power
 def res_storage_output_by_power_rule(m, t, stf, sit, sto, co):
     return (m.e_sto_out[t, stf, sit, sto, co] <= m.dt *
-           m.cap_sto_p[stf, sit, sto, co])
+            m.cap_sto_p[stf, sit, sto, co])
 
 
 # storage content <= storage capacity
@@ -1291,6 +1230,30 @@ def res_global_co2_limit_rule(m, stf):
         return pyomo.Constraint.Skip
 
 
+# CO2 output in entire period <= Global CO2 budget
+def res_global_co2_budget_rule(m):
+    if math.isinf(m.global_prop.loc[m.global_prop.index.min()[0], 'CO2 budget']
+                                   ['value']):
+        return pyomo.Constraint.Skip
+    elif (m.global_prop.loc[m.global_prop.index.min()[0], 'CO2 budget']
+          ['value']) >= 0:
+        co2_output_sum = 0
+        for stf in m.stf:
+            for tm in m.tm:
+                for sit in m.sit:
+                    # minus because negative commodity_balance represents
+                    # creation of that commodity.
+                    co2_output_sum += (- commodity_balance
+                                       (m, tm, stf, sit, 'CO2') *
+                                       m.weight *
+                                       stf_dist(stf,m))
+            
+        return (co2_output_sum <=
+                m.global_prop.loc[stf, 'CO2 budget']['value'])
+    else:
+        return pyomo.Constraint.Skip
+
+
 # Objective
 def def_costs_rule(m, cost_type):
     """Calculate total costs by cost type.
@@ -1328,19 +1291,20 @@ def def_costs_rule(m, cost_type):
                     m.storage_dict['inv-cost-c'][s] *
                     m.storage_dict['invcost-factor'][s]
                     for s in m.sto_tuples) - \
-                sum(m.process_dict['inv-cost'][p] *
-                    m.process_dict['rv-factor'][p]
+                sum(m.cap_pro_new[p] *
+                    m.process_dict['inv-cost'][p] *
+                    m.process_dict['overpay-factor'][p]
                     for p in m.pro_tuples) + \
                 sum(m.cap_tra_new[t] *
                     m.transmission_dict['inv-cost'][t] *
-                    m.transmission_dict['rv-factor'][t]
+                    m.transmission_dict['overpay-factor'][t]
                     for t in m.tra_tuples) + \
                 sum(m.cap_sto_p_new[s] *
                     m.storage_dict['inv-cost-p'][s] *
-                    m.storage_dict['rv-factor'][s] +
+                    m.storage_dict['overpay-factor'][s] +
                     m.cap_sto_c_new[s] *
                     m.storage_dict['inv-cost-c'][s] *
-                    m.storage_dict['rv-factor'][s]
+                    m.storage_dict['overpay-factor'][s]
                     for s in m.sto_tuples)
         except AttributeError:
             return m.costs[cost_type] == \
@@ -1355,15 +1319,16 @@ def def_costs_rule(m, cost_type):
                     m.storage_dict['inv-cost-c'][s] *
                     m.storage_dict['invcost-factor'][s]
                     for s in m.sto_tuples) - \
-                sum(m.process_dict['inv-cost'][p] *
-                    m.process_dict['rv-factor'][p]
+                sum(m.cap_pro_new[p] *
+                    m.process_dict['inv-cost'][p] *
+                    m.process_dict['overpay-factor'][p]
                     for p in m.pro_tuples) + \
                 sum(m.cap_sto_p_new[s] *
                     m.storage_dict['inv-cost-p'][s] *
-                    m.storage_dict['rv-factor'][s] +
+                    m.storage_dict['overpay-factor'][s] +
                     m.cap_sto_c_new[s] *
                     m.storage_dict['inv-cost-c'][s] *
-                    m.storage_dict['rv-factor'][s]
+                    m.storage_dict['overpay-factor'][s]
                     for s in m.sto_tuples)
 
     elif cost_type == 'Fixed':

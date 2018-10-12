@@ -251,9 +251,9 @@ def plot(prob, stf, com, sit, dt, timesteps, timesteps_plot,
     ax1.set_ylabel('{} ({})'.format(energy_name, energy_unit))
 
     # try:
-        # ax1.set_ylim((0, 0.5 + csto.loc[sit, :, com]['C Total'].sum()))
+    # ax1.set_ylim((0, 0.5 + csto.loc[sit, :, com]['C Total'].sum()))
     # except KeyError:
-        # pass
+    # pass
 
     # PLOT DEMAND SIDE MANAGEMENT
     if plot_dsm:
@@ -272,7 +272,7 @@ def plot(prob, stf, com, sit, dt, timesteps, timesteps_plot,
 
     # make xtick distance duration-dependent
     if len(timesteps_plot) > 26 * 168 / dt[0]:     # time horizon > half a year
-        steps_between_ticks = int(168 * 4 / dt[0]) # tick every four weeks
+        steps_between_ticks = int(168 * 4 / dt[0])  # tick every four weeks
     elif len(timesteps_plot) > 3 * 168 / dt[0]:    # time horizon > three weeks
         steps_between_ticks = int(168 / dt[0])     # tick every week
     elif len(timesteps_plot) > 2 * 24 / dt[0]:     # time horizon > two days

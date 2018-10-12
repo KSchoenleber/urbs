@@ -54,7 +54,8 @@ def run_scenario(input_files, Solver, timesteps, scenario, result_dir, dt,
         scenario: a scenario function that modifies the input data dict
         result_dir: directory name for result spreadsheet and plots
         plot_tuples: (optional) list of plot tuples (c.f. urbs.result_figures)
-        plot_periods: (optional) dict of plot periods (c.f. urbs.result_figures)
+        plot_periods: (optional) dict of plot periods
+                      (c.f. urbs.result_figures)
         report_tuples: (optional) list of (sit, com) tuples (c.f. urbs.report)
 
     Returns:
@@ -69,7 +70,7 @@ def run_scenario(input_files, Solver, timesteps, scenario, result_dir, dt,
 
     # create model
     prob = create_model(data, dt, timesteps)
-    #prob.write('model.lp', io_options={'symbolic_solver_labels':True})
+    # prob.write('model.lp', io_options={'symbolic_solver_labels':True})
 
     # refresh time stamp string and create filename for logfile
     now = prob.created
