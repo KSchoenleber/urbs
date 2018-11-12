@@ -16,7 +16,7 @@ result_dir = urbs.prepare_result_directory(result_name) # name + time stamp
 # shutil.copyfile(__file__, os.path.join(result_dir, __file__))
 
 # objective function
-objective = 'CO2' # set either 'cost' or 'CO2' as objective
+objective = 'cost' # set either 'cost' or 'CO2' as objective
 
 # Choose Solver (cplex, glpk, gurobi, ...)
 Solver = 'gurobi'

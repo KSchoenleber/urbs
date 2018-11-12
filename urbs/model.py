@@ -1323,11 +1323,11 @@ def def_costs_rule(m, cost_type):
                 sum(m.cap_pro_new[p] *
                     m.process_dict['inv-cost'][p] *
                     m.process_dict['overpay-factor'][p]
-                    for p in m.pro_tuples) + \
+                    for p in m.pro_tuples) - \
                 sum(m.cap_tra_new[t] *
                     m.transmission_dict['inv-cost'][t] *
                     m.transmission_dict['overpay-factor'][t]
-                    for t in m.tra_tuples) + \
+                    for t in m.tra_tuples) - \
                 sum(m.cap_sto_p_new[s] *
                     m.storage_dict['inv-cost-p'][s] *
                     m.storage_dict['overpay-factor'][s] +
@@ -1351,7 +1351,7 @@ def def_costs_rule(m, cost_type):
                 sum(m.cap_pro_new[p] *
                     m.process_dict['inv-cost'][p] *
                     m.process_dict['overpay-factor'][p]
-                    for p in m.pro_tuples) + \
+                    for p in m.pro_tuples) - \
                 sum(m.cap_sto_p_new[s] *
                     m.storage_dict['inv-cost-p'][s] *
                     m.storage_dict['overpay-factor'][s] +
