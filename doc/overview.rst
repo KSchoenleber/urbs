@@ -1,5 +1,7 @@
 Overview
 --------
+urbs is a generator for linear energy system optimization models.
+
 
 urbs consists of several **model entities**. These are commodities, processes,
 transmission and storage. Demand and intermittent commodity supply through are 
