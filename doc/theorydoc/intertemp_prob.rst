@@ -29,10 +29,10 @@ time domain is entering the index. It now reads:
 
 .. math::
 
-   x^{\text{T}}=(\zeta, \underbrace{\rho_{yct}}_{\text{commodity~variables}},
+   x^{\text{T}}=(\zeta, \underbrace{\rho_{yct}}_{\text{commodity variables}},
    \underbrace{\kappa_{yp}, \widehat{\kappa}_{yp}, \tau_{ypt},
    \epsilon^{\text{in}}_{ycpt},
-   \epsilon^{\text{out}}_{ycpt}}_{\text{process~variables}}).
+   \epsilon^{\text{out}}_{ycpt}}_{\text{process variables}}).
 
 Here, :math:`\zeta` represents the total discounted system costs over the
 entire modeling horizon, :math:`\rho_yct` the amount of commodities :math:`c`
@@ -181,7 +181,7 @@ beginning of the modeling horizon. Since for each modeled year still the
 capacity constraint
 
 .. math::
-   &\forall p \in P,~y\in Y:\\
+   &\forall y\in Y,~ p \in P:\\
    &\underline{K}_{yp}\leq\kappa_{yp}\leq\overline{K}_{yp}
 
 is valid, the set constraints can have effects across years and especially the

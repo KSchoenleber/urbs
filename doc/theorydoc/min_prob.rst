@@ -9,10 +9,10 @@ output (mimo) and the variable vector takes the following form:
 
 .. math::
 
-   x^{\text{T}}=(\zeta, \underbrace{\rho_{ct}}_{\text{commodity~variables}},
+   x^{\text{T}}=(\zeta, \underbrace{\rho_{ct}}_{\text{commodity variables}},
    \underbrace{\kappa_{p}, \widehat{\kappa}_{p}, \tau_{pt},
    \epsilon^{\text{in}}_{cpt},
-   \epsilon^{\text{out}}_{cpt}}_{\text{process~variables}}).
+   \epsilon^{\text{out}}_{cpt}}_{\text{process variables}}).
 
 Here, :math:`\zeta` represents the total annualized system cost, :math:`\rho_ct`
 the amount of commodities :math:`c` taken from a virtual, infinite stock at
@@ -159,8 +159,8 @@ takes in a unit of a commodity.
 After this discussion of the individual cost terms the constraints making up
 the matrices :math:`A` and :math:`B` are discussed now.
 
-Unit expansion constraints
---------------------------
+Process expansion constraints
+-----------------------------
 The unit expansion constraints are independent of the modeled time. In case of
 the minimal model the are restricted to two constraints only limiting the
 allowed capacity expansion for each process. The total capacity of a given
@@ -198,15 +198,15 @@ balanced in each time step. As a helper function the already mentioned
 commodity balance is calculated in the following way:
 
 .. math::
-   &\forall c \in C,~t\in T_m:\\
+   &\forall c \in C,~t\in T_m:\\\\
    &\text{CB}(c,t)=
-    \sum_{(c,p)\in C^{\mathrm{out}}_p}\epsilon^{\text{out}}_{cpt}-
-    \sum_{(c,p)\in C^{\mathrm{in}}_p}\epsilon^{\text{in}}_{cpt}.
+    \sum_{(c,p)\in C^{\mathrm{out}}_p}\epsilon^{\text{in}}_{cpt}-
+    \sum_{(c,p)\in C^{\mathrm{in}}_p}\epsilon^{\text{out}}_{cpt}.
 
 Here, the tuple sets :math:`C^{\mathrm{in,out}}_p` represent all input and
 output commodities of process :math:`p`, respectively. The commodity balance
-thus simply calculates how much more of commodity :math:`c` is added to than
-subtracted from the system via process :math:`p` in timestep :math:`t`. Using
+thus simply calculates how much more of commodity :math:`c` is emitted by than
+added to the system via process :math:`p` in timestep :math:`t`. Using
 this term the vertex rule for the various commodity types can now be written in
 the following way:
 

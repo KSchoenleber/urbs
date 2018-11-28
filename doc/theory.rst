@@ -20,3 +20,4 @@ then concluded by the additional description of various feature modules.
    theorydoc/intro
    theorydoc/min_prob
    theorydoc/intertemp_prob
+   theorydoc/multinode_prob
