@@ -1,7 +1,7 @@
 .. module:: urbs
 
-Minimal optimization model
-==========================
+Intertemporal optimization model
+================================
 The minimal model in urbs is a simple expansion and dispatch model with only
 processes being able to fulfill the given demands. All spatial information is
 neglected in this case. The minimal model is already multiple-input/multiple
@@ -16,7 +16,7 @@ output (mimo) and the variable vector takes the following form:
 
 Here, :math:`\zeta` represents the total annualized system cost, :math:`\rho_ct`
 the amount of commodities :math:`c` taken from a virtual, infinite stock at
-time :math:`t`, :math:`\kappa_{p}` and :math:`\widehat{\kappa}_{p}` the total
+time :math:`t`, :math:`\kappa_{vp}` and :math:`\widehat{\kappa}_{vp}` the total
 and the newly installed process capacities of processes :math:`p`,
 :math:`\tau_{pt}` the operational state of processes :math:`p` at time
 :math:`t` and :math:`\epsilon^{\text{in}}_{cpt}` and
@@ -51,7 +51,7 @@ where :math:`\zeta_{\text{inv}}` are the annualized invest costs,
 the total variable costs accumulating over one year,
 :math:`\zeta_{\text{fuel}}` the accumulated fuel costs over one year and
 :math:`\zeta_{\text{env}}` the annual penalties for environmental pollution.
-These costs are then calculated in the following way:
+These costs are linked then calculated in the following way:
 
 Annualized invest costs
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -186,8 +186,8 @@ All further constraints are time dependent and are determinants of the unit
 commitment, i.e. the time series of operation of all processes and commodity
 flows.
 
-Commodity dispatch constraints
-------------------------------
+Commodity constraints
+---------------------------
 In this part the rules governing the commodity flow timeseries are shown.  
 
 Vertex rule ("Kirchhoffs current law")
@@ -259,8 +259,8 @@ where :math:`\overline{M}_c` and :math:`\overline{m}_c` are the totally allowed
 annual and hourly emissions of environmental commodity :math:``c` to the
 atmosphere, respectively.
 
-Process dispatch constraints
-----------------------------
+Process constraints
+-------------------
 So far, apart from the commodity balance function, the interaction between
 processes and commodities have not been discussed. It is perhaps in order to
 start with the general idea behind the modeling of the process operation. In

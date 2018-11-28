@@ -59,24 +59,23 @@ and the single output ``electricity``.
 
 Transmission
 ^^^^^^^^^^^^
-Transmission allows instantaneous transportation of commodities between sites. It is
-characterised by an efficiency and costs, just like processes. Transmission is
-defined over the tuple ``(site in, site out, transmission, commodity)``. For
-example, ``(Iceland, Norway, undersea cable, electricity)`` would represent an
-undersea cable for electricity between Iceland and Norway.
+Transmission allows instantaneous transportation of commodities between sites.
+It is characterised by an efficiency and costs, just like processes.
+Transmission is defined over the tuple
+``(site in, site out, transmission, commodity)``. For example,
+``(Iceland, Norway, undersea cable, electricity)`` would represent an undersea
+cable for electricity between Iceland and Norway.
 
 Storage
 ^^^^^^^
-Storage describes the possibility to deposit a deliberate amount of energy in the 
-form of one commodity at one time step; with the purpose of retrieving it later. Efficiencies
-for charging/discharging depict losses during input/output. A self-discharge
-term is **not** included at the moment, but could be added trivially (one
-column, one modification of the storage state equation). Storage is
-characterised by capacities both for energy content (in MWh) and
+Storage describes the possibility to deposit a deliberate amount of energy in
+the  form of one commodity at one time step; with the purpose of retrieving it
+later. Efficiencies for charging/discharging depict losses during input/output.
+Storage is characterised by capacities both for energy content (in MWh) and
 charge/discharge power (in MW). Both capacities have independent sets of
 investment, fixed and variable cost parameters to allow for a very flexible
-parametrization of various storage technologies; ranging from batteries to hot water
-tanks.
+parametrization of various storage technologies; ranging from batteries to hot
+water tanks.
 
 Storage is defined over the tuple ``(site, storage, stored commodity)``. For
 example, ``(Norway, pump storage, electricity)`` represents a pump storage
@@ -90,9 +89,10 @@ Timeseries
 Demand
 """"""
 Each combination ``(site, demand commodity)`` may have one timeseries,
-describing the aggregate demand (typically MWh) for a commodity within a given timestep. They are a crucial
-input parameter, as the whole optimisation aims to satisfy these demands with
-minimal costs by the given technologies (process, storage, transmission).
+describing the aggregate demand (typically MWh) for a commodity within a given
+timestep. They are a crucial input parameter, as the whole optimisation aims to
+satisfy these demands with minimal costs by the given technologies
+(process, storage, transmission).
 
 Intermittent Supply
 """""""""""""""""""
