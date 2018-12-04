@@ -100,8 +100,8 @@ balance is thereby allowing for commodities to leave the system at vertex
 commodity balance the vertex rule and the other rules restricting commodity
 flows remain unchanged with respect to the minimal model.
 
-Transmission constraints
-------------------------
+Transmission dispatch constraints
+---------------------------------
 There are two main constraints for the commodity flows to and from transmission
 lines. The first restricts the total amount of commodity :math:`c` flowing in
 arc :math:`a` on transmission line :math:`f` to the total capacity of the line:

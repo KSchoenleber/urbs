@@ -116,10 +116,12 @@ modeled time horizon, the total costs :math:`C_{\text{total}}`
 of an investment of size :math:`C` made in year :math:`m` is given by:
 
 .. math::
-   C_{\text{total}}&=D_{m}\cdot f \cdot C = (1+j)^{1-m}\frac{1-(1+j)^{-k}}{j}
-   \cdot \frac{(1+i)^n\cdot i}{(1+i)^n-1}\dot C=\\\\
-   &=(1+j)^{1-m}\cdot \frac{i}{j}\cdot \left(\frac{1+i}{1+j}\right)^n\cdot
-   \frac{(1+j)^n-(1+j)^{n-k}}{(1+i)^n-1}
+   C^{\text{total}}_{\text{m}}&=D_{m}\cdot f \cdot C =
+   (1+j)^{1-m}\frac{1-(1+j)^{-k}}{j} \cdot \frac{(1+i)^n\cdot i}{(1+i)^n-1}
+   \cdot C=\\\\
+   &=\underbrace{(1+j)^{1-m}\cdot \frac{i}{j}\cdot
+   \left(\frac{1+i}{1+j}\right)^n\cdot
+   \frac{(1+j)^n-(1+j)^{n-k}}{(1+i)^n-1}}_{=:I_{\text{m}}}\cdot C
 
 For either
 :math:`i=0` or :math:`j=0` a distinction has to be made, which takes the
@@ -128,20 +130,27 @@ following form:
 * :math:`i=0,~j=0`:
 
   .. math::
-    C_{\text{total}}=C\frac{k}{n}
+    C^{\text{total}}_{\text{m}}=\underbrace{\frac{k}{n}}_{=:I_{\text{m}}}\cdot
+    C
 
 * :math:`i\neq0,~j=0`:
 
   .. math::
-    C_{\text{total}}=k\cdot f\cdot C=k\cdot \frac{(1+i)^n\cdot i}{(1+i)^n-1}
-    \cdot C
+    C^{\text{total}}_{\text{m}}=k\cdot f\cdot C=\underbrace{k\cdot
+    \frac{(1+i)^n\cdot i}{(1+i)^n-1}}_{=:I_{\text{m}}}\cdot C
 
 * :math:`i=0,~j\neq0`:
 
   .. math::
-    C_{\text{total}}=C\cdot \frac 1n \cdot (1+j)^{-m}
-    \sum_{l=0}^{k-1}(1+j)^{-l}=C\cdot \frac 1n \cdot (1+j)^{-m} \cdot
-    \frac{(1+j)^k-1}{(1+j)^k\cdot j}
+    C^{\text{total}}_{\text{m}}=\frac 1n \cdot (1+j)^{-m}
+    \sum_{l=0}^{k-1}(1+j)^{-l} \cdot C=\underbrace{\frac 1n \cdot (1+j)^{-m}
+    \cdot \frac{(1+j)^k-1}{(1+j)^k\cdot j}}_{=:I_{\text{m}}}\cdot C
+
+In any case the total invest costs are then given by:
+
+.. math::
+   \zeta_{\text{inv}}=\sum_{y\in Y\\p\in P}C^{\text{total}}_{\text{m}}=
+   \sum_{y\in  Y\\p\in P}I_{\text{y}}k^{\text{inv}}_{yp} \widehat{\kappa}_{yp}
 
 Unit expansion constraints
 --------------------------
@@ -171,10 +180,10 @@ given by:
 
 .. math::
    \kappa_{yp}&=\sum_{y^{\prime}\in Y\\(p,y^{\prime},y)\in O}
-   \widehat{\kappa}_{py^{\prime}} + K_{p}
+   \widehat{\kappa}_{y^{\prime}p} + K_{p}
    ~,~~\text{if}~(p,y)\in O_{\text{inst}}\\\\
    \kappa_{yp}&=\sum_{y^{\prime}\in Y\\(p,y^{\prime},y)\in O}
-   \widehat{\kappa}_{py^{\prime}}~,~~\text{else}
+   \widehat{\kappa}_{y^{\prime}p}~,~~\text{else}
 
 where :math:`K_{p}` is the installed capacity of process :math:`p` at the
 beginning of the modeling horizon. Since for each modeled year still the
