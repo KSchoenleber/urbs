@@ -195,4 +195,18 @@ capacity constraint
 
 is valid, the set constraints can have effects across years and especially the
 modeller has to be careful not to set infeasible contraints.
-   
+
+Commodity dispatch constraints
+------------------------------
+While in an intertemporal model all commodity constraints within one modeled
+year remain valid one addition is possible concerning CO2 emissions. Here, a
+budget can be given, which is valid over the entire modeling horizon:
+
+.. math::
+   -w\sum_{y\in Y\\t\in T_{m}}\text{CB}(y,\text{CO}_2,t)\leq
+   \overline{L}_{\text{CO}_2}
+
+Here, :math:`\overline{\overline{M}}_c` is the global budget for the emission
+of the environmental commodity. Currently this is hard coded for CO2 alone.
+
+This rule concludes the model additions introduced by intertemporal modeling.

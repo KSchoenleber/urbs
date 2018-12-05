@@ -235,9 +235,9 @@ same quantity per timestep. the two rules take the following form:
 
 .. math::
    &\forall c \in C_{\text{st}}:\\
-   &w\Delta t \sum_{t\in T_{m}}\rho_{ct}\leq \overline{L}_c\\\\
+   &w \sum_{t\in T_{m}}\rho_{ct}\leq \overline{L}_c\\\\
    &\forall c \in C_{\text{st}},~t\in T_m:\\
-   & \rho_ct\leq \overline{l}_{c},
+   &\rho_ct\leq \overline{l}_{c},
 
 where :math:`\overline{L}_c` and :math:`\overline{l}_c` are the totally allowed
 annual and hourly retrieval of commodity :math:``c` from the stock,
@@ -251,7 +251,7 @@ rules:
 
 .. math::
    &\forall c \in C_{\text{env}}:\\
-   &-w\Delta t \sum_{t\in T_{m}}\text{CB}(c,t)\leq \overline{M}_c\\\\
+   &-w \sum_{t\in T_{m}}\text{CB}(c,t)\leq \overline{M}_c\\\\
    &\forall c \in C_{\text{env}},~t\in T_m:\\
    & -\text{CB}(c,t)\leq \overline{m}_{c},
 
@@ -284,22 +284,6 @@ process :math:`p` for the conversion of commodity :math:`c_1` into commodity
 .. math::
    \eta=\frac{r^{\text{out}}_{pc_2}}{r^{\text{in}}_{pc_1}}.
 
-Intermittend supply rule
-~~~~~~~~~~~~~~~~~~~~~~~~
-If the input commodity is of type 'SupIm', which means that it represents an
-operational state rather than a proper material flow, the operational state of
-the process is governed by this alone. This feature is typically used for
-renewable energies but can be used whenever a certain operation time series of
-a given process is desired
-
-.. math::
-   &\forall p\in P,~c\in C_{\text{sup}},~t\in T_m:\\
-   &\epsilon^{\text{in}}_{cpt}=s_{ct}\kappa_{p}.
-
-Here, :math:`s_{ct}` is the time series that governs the exact operation of
-process :math:`p`, leaving only its capacity :math:`\kappa_{p}` as a free
-variable.
-
 Basic process throughput rules
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The troughput :math:`\tau_{pt}` of a process is limited by its installed
@@ -315,6 +299,22 @@ switching speed of a process can be limited:
 where :math:`\underline{P}_{p}` is the normalized, minimal operational state of
 the process and :math:`\overline{PG}_p` the normalized, maximal gradient of the
 operational state in full capacity per timestep.
+
+Intermittend supply rule
+~~~~~~~~~~~~~~~~~~~~~~~~
+If the input commodity is of type 'SupIm', which means that it represents an
+operational state rather than a proper material flow, the operational state of
+the process is governed by this alone. This feature is typically used for
+renewable energies but can be used whenever a certain operation time series of
+a given process is desired
+
+.. math::
+   &\forall p\in P,~c\in C_{\text{sup}},~t\in T_m:\\
+   &\epsilon^{\text{in}}_{cpt}=s_{ct}\kappa_{p}.
+
+Here, :math:`s_{ct}` is the time series that governs the exact operation of
+process :math:`p`, leaving only its capacity :math:`\kappa_{p}` as a free
+variable.
 
 Time variable efficiency
 ~~~~~~~~~~~~~~~~~~~~~~~~
