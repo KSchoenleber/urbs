@@ -169,11 +169,11 @@ necessary:
    L_p \geq\ y_{j+1}\}\\\\
    O_{\text{inst}}&:=\{(p, y_j)|p\in P_0,~y\in Y,~y_0+T_p\geq y_{j+1}\},
 
-where :math:`L_p` is the lifetime of process :math:`p`, ;amth:`P_0` the subset
-of processes that are already installed in the first modeled year :math:`y_0`
-and :math:`T_{p}` the rest lifetime of already installed processes. If
-:math:`y_j` is the last modeled year, :math:`y_{j+1}` stands for the end of the
-model horizon.   
+where :math:`L_p` is the lifetime of processes :math:`p`, :math:`P_0` the
+subset of processes that are already installed in the first modeled year
+:math:`y_0` and :math:`T_{p}` the rest lifetime of already installed processes.
+If :math:`y_j` is the last modeled year, :math:`y_{j+1}` stands for the end of
+the model horizon.   
 
 With these two sets the installed process capacity in a given year is then
 given by:
@@ -204,9 +204,9 @@ budget can be given, which is valid over the entire modeling horizon:
 
 .. math::
    -w\sum_{y\in Y\\t\in T_{m}}\text{CB}(y,\text{CO}_2,t)\leq
-   \overline{L}_{\text{CO}_2}
+   \overline{\overline{L}}_{\text{CO}_2}
 
-Here, :math:`\overline{\overline{M}}_c` is the global budget for the emission
-of the environmental commodity. Currently this is hard coded for CO2 alone.
+Here, :math:`\overline{\overline{L}}_c` is the global budget for the emission
+of the environmental commodity. Currently this is hard coded for CO2 only.
 
 This rule concludes the model additions introduced by intertemporal modeling.
