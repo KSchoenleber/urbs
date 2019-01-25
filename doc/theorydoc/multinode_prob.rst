@@ -108,7 +108,7 @@ coded possibility to limit the CO2 emissions across all modeled sites:
 
 .. math::
    -w\sum_{v\in V\\t\in T_{m}}\text{CB}(v,\text{CO}_2,t)\leq
-   \overline{L}_{\text{CO}_2}
+   \overline{L}_{\text{CO}_2,y}
      
 
 Transmission dispatch constraints

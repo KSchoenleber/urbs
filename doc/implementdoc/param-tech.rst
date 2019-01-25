@@ -38,7 +38,7 @@ Technical Parameters
     +---------------------------------------------+----+--------------------------------------------+
     |:math:`\overline{B}_{yvc}`                   |MWh |Maximum Annual Buy Limit                    |
     +---------------------------------------------+----+--------------------------------------------+
-    |:math:`\overline{L}_{\text{CO}_2}`           | t  |Maximum Global Annual CO2 Emission Limit    |
+    |:math:`\overline{L}_{\text{CO}_2,y}`         | t  |Maximum Global Annual CO2 Emission Limit    |
     +---------------------------------------------+----+--------------------------------------------+
     |:math:`\overline{\overline{L}}_{\text{CO}_2}`| t  |CO2 Emission Budget for modeling horizon    |
     +---------------------------------------------+----+--------------------------------------------+
@@ -316,17 +316,18 @@ there is no desired restriction of a buy commodity tuple usage per timestep,
 the corresponding cell can be set to "inf" to ignore this parameter. 
 
 **Maximum Global Annual CO**:math:`_\textbf{2}` **Annual Emission Limit**,
-:math:`\overline{L}_{CO_2}`, ``m.global_prop.loc[stf, 'CO2 limit']['value']``:
-The parameter :math:`\overline{L}_{CO_2}` represents the maximum total amount
-of CO2 the energy model is allowed to produce and release to the environment
-annually. If the user desires to set a maximum annual limit to total
-:math:`CO_2` emission across all sites of the energy model, this can be done by
-entering the desired value to the spreadsheet corresponding to the support
-timeframe. The related section for this parameter can be found under the sheet
-"Global". Here the the cell where the "CO2 limit" row and "value" column 
-intersects stands for the parameter :math:`\overline{L}_{CO_2}`. If the user
-wants to disable this parameter and restriction it provides, this cell can be
-set to "inf" or simply be deleted.
+:math:`\overline{L}_{CO_2,y}`,
+``m.global_prop.loc[stf, 'CO2 limit']['value']``: The parameter
+:math:`\overline{L}_{CO_2,y}` represents the maximum total amount of CO2 the
+energy model is allowed to produce and release to the environment annually. If
+the user desires to set a maximum annual limit to total :math:`CO_2` emission
+across all sites of the energy model in a given support timeframe :math:`y`,
+this can be done by entering the desired value to the spreadsheet corresponding
+to the support timeframe. The related section for this parameter can be found
+under the sheet "Global". Here the the cell where the "CO2 limit" row and
+"value" column intersects stands for the parameter
+:math:`\overline{L}_{CO_2,y}`. If the user wants to disable this parameter and
+restriction it provides, this cell can be set to "inf" or simply be deleted.
 
 **CO**:math:`_\textbf{2}`** emission budget **Total Emission budget**,
 :math:`\overline{\overline{L}}_{CO_2}`,

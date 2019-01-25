@@ -25,10 +25,67 @@ referencing to the corresponding upshift with the first index :math:`t` and the
 timesteps they actually occur via the second time index :math:`tt`. The latter
 is then restricted to an intervall arouns the reference upshift since loads
 cannot in general be shifted indefinitely. As it is modeled in urbs, DSM does
-not introduce any costs.
+not introduce any costs. to clarify the terms used for the DSM feature the
+following illustrative example is helpful.
+
+Example of a DSM process
+~~~~~~~~~~~~~~~~~~~~~~~~
+An example scenario with parameters below can be used to clarify the
+mathematical structure of a DSM process.
+
+.. csv-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   Site,   Commodity, delay,  eff, recov, cap-max-do, cap-max-up
+   South,  Elec,         3,     1,     1,       2000,       2000
+
+First, an series of three upshifts, i.e. demand increases, indexed with the
+modeled timesteps 3,4 and 5 occurs in the example. 
+   
+.. csv-table:: **DSM upshift process**
+   :header-rows: 1                                                           
+   :stub-columns: 1
+
+   :math:`t`,   
+   1, 0
+   2, 0
+   3, 1445
+   4, 1580
+   5, 2000
+   6, 0
+
+The corresponding downshifts can then be visualized using a matrix, where the
+row index :math:`t` corresponds to the upshifts above, that have to be
+compensated by downshifts. The modeled timesteps where the downshifts actually
+occur are labeled by :math:`tt` and represent the column indices. 
+   
+
+.. csv-table:: **DSM downshift process**
+   :header-rows: 1                                                           
+   :stub-columns: 1
+   
+   :math:`t` \\ :math:`tt`,   1,    2,    3,    4,    5,    6
+   1,                         0,    0,    0,    0,     ,        
+   2,                         0,    0,    0,    0,    0,        
+   3,                      1445,    0,    0,    0,    0,    0   
+   4,                       555,    0,  555,    0,    0,  470   
+   5,                          , 2000,    0,    0,    0,    0
+   6,                          ,     ,    0,    0,    0,    0
+   
+The DSM upshift process is relatively easy to understand, for every time step
+:math:`t` one upshift is made and it can not exceed 2000. The table for DSM
+downshift process shows, that the sum over all elements for every row index
+:math:`t`, is equal to the upshift made at time step :math:`t`. The blank
+spaces in the table are because of delay time restriction. For instance, an
+upshift in :math:`t = 1` may not be compensated with a downshift in
+:math:`tt = 5`, as delay time is equal to 3 in our example. The restriction of
+the total DSM downshifts is given by the sum of all column elements for every
+index :math:`tt`. This sum may not exceed 2000 as well, due to given
+parameters.  
 
 Commodity dispatch constraints
-------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Demand side management changes the vertex rule. Every upshift
 :math:`\delta^{\text{up}}_{yvct}` leads to an additional demand, i.e., to an
 additional required output of the system, and vice versa for the downshifts. 
@@ -48,7 +105,7 @@ downshift contributions within the delay time :math:`y_{yvc}` of their
 respective upshifts are then summed up.   
 
 DSM variables rule
-~~~~~~~~~~~~~~~~~~
+------------------
 This central constraint rule for DSM in urbs links the up- and down shifts of
 DSM events. An upshift (multiplied with the DSM efficiency) at time :math:`t`
 must be compensated with multiple downshifts during a certain time interval.
@@ -71,7 +128,7 @@ rule above, where the summation is over the timesteps of the corresponding
 upshifts.
 
 DSM shift limitations
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 DSM shifts are limited in size in both directions. This is modeled by
 
 .. math::
@@ -95,7 +152,7 @@ of shifts is also limited in an urbs model via:
    \{\overline{K}^{\text{up}}_{yvc},\overline{K}^{\text{down}}_{yvc}\}.
 
 DSM recovery
-~~~~~~~~~~~~
+------------
 Assuming that DSm is linked to some real physical devices, it is necessary to
 allow these devices to have some minimal time between DSM events, where, e.g.,
 the ability to perform DSM is recovered. This is modeled in the follwoing way:
@@ -111,5 +168,5 @@ maximum allowed energy shift retained for the maximum amount of allowed
 shifting time for one shifting event. This means that only one full shifting
 event can occur within the recovery period.
 
-This concludes the demand side management constraints. 
+This concludes the demand side management constraints.
    
