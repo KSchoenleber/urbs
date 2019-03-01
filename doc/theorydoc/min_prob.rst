@@ -316,22 +316,6 @@ Here, :math:`s_{ct}` is the time series that governs the exact operation of
 process :math:`p`, leaving only its capacity :math:`\kappa_{p}` as a free
 variable.
 
-Time variable efficiency
-~~~~~~~~~~~~~~~~~~~~~~~~
-It is possible to manipulate the operation of a process further by introducing
-a time series, which changes the output ratios and thus the efficiency of a
-given process in each given timestep. This introduces an additional set of
-constraints in the form:
-
-.. math::
-   &\forall p \in P^{\text{TimeVarEff}},~c\in C-C^{\text{env}} t\in T_m:\\
-   &\epsilon^{\text{out}}_{pct}=r^{\text{out}}_{pc}f^{\text{out}}_{pt}\tau_{pt}
-   .
-
-Here, :math:`f^{\text{out}}_{pt}` represents the normalized time series of the
-varying output ratio. This feature can be helpful when modeling, e.g.,
-temperature dependent effects or maintenance intervals.
-
 Part load behavior
 ~~~~~~~~~~~~~~~~~~
 Many processes show a non-trivial part-load behavior. In particular, often a
@@ -354,12 +338,12 @@ equations:
 
 .. math::
    &\forall p\in P^{\text{partload}},~c\in C,~t\in T_m:\\\\
-   &\epsilon^{\text{in,out}}_{pct}=\Delta t\cdot
+   &\epsilon^{\text{in,out}}_{pct}=\Delta t\cdot\left(
    \frac{\underline{r}^{\text{in,out}}_{pc}-r^{\text{in,out}}_{pc}}
    {1-\underline{P}_p}\cdot \underline{P}_p\cdot \kappa_p+
    \frac{r^{\text{in,out}}_{pc}-
    \underline{P}_p\underline{r}^{\text{in,out}}_{pc}}
-   {1-\underline{P}_p}\cdot \tau_{pt}.
+   {1-\underline{P}_p}\cdot \tau_{pt}\right).
 
 A few retrictions have to be kept in mind when using this feature:
 

@@ -27,3 +27,4 @@ minimal, intertemporal and multinode modelling.
    theorydoc/storage_prob
    theorydoc/buysell_prob
    theorydoc/DSM_prob
+   theorydoc/TVE_prob
