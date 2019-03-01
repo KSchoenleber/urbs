@@ -33,6 +33,7 @@ first running model.
 .. toctree::
    :maxdepth: 1
 
+   Users_guide
    overview
    tutorial
    workflow
