@@ -35,11 +35,11 @@ the following code fragments:
 
 ::
 
-		m.res_vertex = pyomo.Constraint(
-			m.tm, m.com_tuples,
-			rule=res_vertex_rule,
-			doc='storage + transmission + process + source + buy - sell == demand')
-		
+        m.res_vertex = pyomo.Constraint(
+            m.tm, m.com_tuples,
+            rule=res_vertex_rule,
+            doc='storage + transmission + process + source + buy - sell == demand')
+
 
 .. literalinclude:: /../urbs/model_dochelper.py
    :pyobject: res_vertex_rule
@@ -76,7 +76,7 @@ annually by the energy system in the site :math:`v` and support timeframe
 limit per vertex :math:`\overline{L}_{yvc}`. The annual usage of stock
 commodity is calculated by the sum of the products of the parameter weight
 :math:`w` and the parameter stock commodity source term :math:`\rho_{yvct}`,
-summed over ll timestepsa:math:`t \in T_m`.
+summed over all timestepsa:math:`t \in T_m`.
 
 In script ``model.py`` the constraint total stock rule is defined and
 calculated by the following code fragment:
