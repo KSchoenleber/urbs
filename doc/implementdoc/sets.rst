@@ -526,7 +526,7 @@ by the following code fragment:
 
 where the following function is utilized:
 
-.. literalinclude:: /../urbs/modelhelper.py
+.. literalinclude:: /../urbs/features/dsm.py
    :pyobject: dsm_down_time_tuples
 
 

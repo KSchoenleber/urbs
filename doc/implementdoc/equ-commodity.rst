@@ -17,7 +17,7 @@ technologies given above.
 In script ``modelhelper.py`` the value of the commodity balance function
 :math:`\mathrm{CB}(y,v,c,t)` is calculated by the following code fragment: 
 
-.. literalinclude:: /../urbs/modelhelper_dochelper.py
+.. literalinclude:: /../urbs/features/modelhelper.py
    :pyobject: commodity_balance
 
 
@@ -41,7 +41,7 @@ the following code fragments:
             doc='storage + transmission + process + source + buy - sell == demand')
 
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/model.py
    :pyobject: res_vertex_rule
 
 
@@ -64,7 +64,7 @@ calculated by the following code fragment:
         doc='stock commodity input per step <= commodity.maxperstep')
 
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/model.py
    :pyobject: res_stock_step_rule
 
 
@@ -88,7 +88,7 @@ calculated by the following code fragment:
         rule=res_stock_total_rule,
         doc='total stock commodity input <= commodity.max')
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/model.py
    :pyobject: res_stock_total_rule
 
 
@@ -103,7 +103,7 @@ must be less than or equal to the value of the parameter maximum sell supply
 limit per hour :math:`\overline{g}_{vc}` multiplied with the length of the
 time steps :math:`\Delta t`.
 
-In script ``model.py`` the constraint sell per step rule is defined and
+In script ``BuySellPrice.py`` the constraint sell per step rule is defined and
 calculated by the following code fragment:
 ::
 
@@ -112,7 +112,7 @@ calculated by the following code fragment:
        rule=res_sell_step_rule,
        doc='sell commodity output per step <= commodity.maxperstep')
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/features/BuySellPrice.py
    :pyobject: res_sell_step_rule
 
 **Total Sell Rule**: The constraint total sell rule applies only for
@@ -125,8 +125,8 @@ is calculated by the sum of the products of the parameter weight :math:`w` and
 the parameter sell commodity source term :math:`\varrho_{yvct}`, summed over
 all timesteps :math:`t \in T_m`.
 
-In script ``model.py`` the constraint total sell rule is defined and calculated
-by the following code fragment:
+In script ``BuySellPrice.py`` the constraint total sell rule is defined and
+calculated by the following code fragment:
 ::
 
     m.res_sell_total = pyomo.Constraint(
@@ -134,7 +134,7 @@ by the following code fragment:
         rule=res_sell_total_rule,
         doc='total sell commodity output <= commodity.max')
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/features/BuySellPrice.py
    :pyobject: res_sell_total_rule
 
 **Buy Per Step Rule**: The constraint buy per step rule applies only for
@@ -148,7 +148,7 @@ constraint, the value of the variable buy commodity source term
 maximum buy supply limit per time step :math:`\overline{b}_{vc}`, multiplied by
 the length of the time steps :math:`\Delta t`.
 
-In script ``model.py`` the constraint buy per step rule is defined and
+In script ``BuySellPrice.py`` the constraint buy per step rule is defined and
 calculated by the following code fragment:
 ::
 
@@ -157,7 +157,7 @@ calculated by the following code fragment:
         rule=res_buy_step_rule,
         doc='buy commodity output per step <= commodity.maxperstep')
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/features/BuySellPrice.py
    :pyobject: res_buy_step_rule
 
 **Total Buy Rule**: The constraint total buy rule applies only for commodities
@@ -172,8 +172,8 @@ is calculated by the sum of the products of the parameter weight :math:`w` and
 the parameter buy commodity source term :math:`\psi_{yvct}`, summed over all
 modeled timesteps :math:`t \in T_m`.
 
-In script ``model.py`` the constraint total buy rule is defined and calculated
-by the following code fragment:
+In script ``BuySellPrice.py`` the constraint total buy rule is defined and
+calculated by the following code fragment:
 ::
 
     m.res_buy_total = pyomo.Constraint(
@@ -181,7 +181,7 @@ by the following code fragment:
        rule=res_buy_total_rule,
        doc='total buy commodity output <= commodity.max')
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/features/BuySellPrice.py
    :pyobject: res_buy_total_rule
 
 
@@ -207,7 +207,7 @@ defined and calculated by the following code fragment:
         rule=res_env_step_rule,
         doc='environmental output per step <= commodity.maxperstep')
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/model.py
    :pyobject: res_env_step_rule
 
 
@@ -233,7 +233,7 @@ defined and calculated by the following code fragment:
         rule=res_env_total_rule,
         doc='total environmental commodity output <= commodity.max')
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/model.py
    :pyobject: res_env_total_rule
 
    
@@ -258,7 +258,7 @@ dividing by the timestep length :math:`{\Delta t}`. Depending on the DSM
 efficiency :math:`e_{yvc}`, an upshift in a DSM commodity may correspond to
 multiple downshifts which sum to less than the original upshift.
     
-In script ``model.py`` the constraint DSM variables rule is defined by the
+In script ``dsm.py`` the constraint DSM variables rule is defined by the
 following code fragment:
 
 ::
@@ -268,7 +268,7 @@ following code fragment:
         rule=def_dsm_variables_rule,
         doc='DSMup * efficiency factor n == DSMdo (summed)')	
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/features/dsm.py
    :pyobject: def_dsm_variables_rule
         
         
@@ -278,7 +278,7 @@ step :math:`t` is limited by the DSM maximal upshift per hour
 :math:`\overline{K}_{yvc}^\text{up}`, multiplied by the langth of the time
 steps :math:`\Delta t`.
     
-In script ``model.py`` the constraint DSM upward rule is defined by the
+In script ``dsm.py`` the constraint DSM upward rule is defined by the
 following code fragment:
 
 ::
@@ -288,7 +288,7 @@ following code fragment:
         rule=res_dsm_upward_rule,
         doc='DSMup <= Cup (threshold capacity of DSMup)')
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/features/dsm.py
    :pyobject: res_dsm_upward_rule
         
 **DSM Downward Rule**: The total DSM downshift
@@ -297,7 +297,7 @@ following code fragment:
 the DSM maximal downshift per hour :math:`\overline{K}_{yvc}^\text{down}`,
 multiplied by the length of the time steps :math:`\Delta t`.
     
-In script ``model.py`` the constraint DSM downward rule is defined by the
+In script ``dsm.py`` the constraint DSM downward rule is defined by the
 following code fragment:
 
 ::
@@ -307,7 +307,7 @@ following code fragment:
         rule=res_dsm_downward_rule,
         doc='DSMdo (summed) <= Cdo (threshold capacity of DSMdo)')
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/features/dsm.py
    :pyobject: res_dsm_downward_rule
         
 
@@ -315,7 +315,7 @@ following code fragment:
 site :math:`v` in support timeframe :math:`y` of demand commodity :math:`c` in
 time step :math:`t`.
    
-In script ``model.py`` the constraint DSM maximum rule is defined by the
+In script ``dsm.py`` the constraint DSM maximum rule is defined by the
 following code fragment:
 
 ::
@@ -325,7 +325,7 @@ following code fragment:
         rule=res_dsm_maximum_rule,
         doc='DSMup + DSMdo (summed) <= max(Cup,Cdo)')
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/features/dsm.py
    :pyobject: res_dsm_maximum_rule
 
 **DSM Recovery Rule**: The DSM recovery rule limits the upshift in site
@@ -334,7 +334,7 @@ a set recovery period :math:`o_{yvc}`. Since the recovery period
 :math:`o_{yvc}` is input as hours, it is scaled into time steps by dividing it
 by the length of the time steps :math:`\Delta t`.
     
-In script ``model.py`` the constraint DSM Recovery rule is defined by the
+In script ``dsm.py`` the constraint DSM Recovery rule is defined by the
 following code fragment:
 
 ::
@@ -344,7 +344,7 @@ following code fragment:
         rule=res_dsm_recovery_rule,
         doc='DSMup(t, t + recovery time R) <= Cup * delay time L')
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/features/dsm.py
    :pyobject: res_dsm_recovery_rule     
   
         
@@ -367,7 +367,7 @@ the parameter :math:`\overline{L}_{CO_{2}}` is set to ``inf``.
 In script ``model.py`` the constraint annual global CO2 limit rule is defined
 and calculated by the following code fragment:
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/model.py
    :pyobject: res_global_co2_limit_rule
 
 **Global CO2 Budget Rule**: The constraint global CO2 budget rule applies to
@@ -387,5 +387,5 @@ weight :math:`w`. This constraint is skipped if the value of the parameter
 In script ``model.py`` the constraint global CO2 budget is defined and
 calculated by the following code fragment:
 
-.. literalinclude:: /../urbs/model_dochelper.py
+.. literalinclude:: /../urbs/model.py
    :pyobject: res_global_co2_budget_rule

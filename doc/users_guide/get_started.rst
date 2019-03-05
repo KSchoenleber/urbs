@@ -5,8 +5,8 @@ Get started
 Welcome to urbs! Here you can learn how to use the program and what to do to
 create your own optimization problems and run them.
 
-Input files
-^^^^^^^^^^^
+Inputs
+^^^^^^
 There are two different types of inputs the user has to make in order to set up
 and solve an optimization problem with urbs.
 
@@ -27,3 +27,6 @@ modeling run you then simply execute the according run script by typing::
     $ python3 runscript.py
 
 in the command prompt.
+
+You can immediately test this after the installation by running one of the two
+standard examples using the corresponding example run sctipts.
