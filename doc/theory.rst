@@ -14,7 +14,7 @@ increase the index depth of all variables and parameters are discussed in the
 parts 'Intertemporal modeling' and 'Multinode modeling'. The description is
 then concluded by the additional description of various feature modules. The
 latter are discussed in full index depth, i.e., with all features introduced in
-minimal, intertemporal and multinode modelling.
+minimal, intertemporal and multinode modeling.
 
    
 .. toctree::

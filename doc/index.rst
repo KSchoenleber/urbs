@@ -34,36 +34,32 @@ first running model.
    :maxdepth: 1
 
    Users_guide
-   overview
    tutorial
    workflow
 
 Mathematical documentation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Continue her if you want to understand the theoretical conception of the model
-generator, the logic behind the equations, structure of the features and the
-corresponding implementation.
+Continue here if you want to understand the theoretical conception of the model
+generator, the logic behind the equations and the structure of the features.
 
 .. toctree::
    :maxdepth: 1
 
    theory
-   implementation
 
 Technical documentation
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Continue here if you want to automate the scripting further, understand the
-model equations or extend the model yourself.
+Continue here if you want to understand in detail the model generator
+implementation.
 
 .. toctree::
    :maxdepth: 1
    
+   implementation
    report
    api
-   buyselldoc
-   dsmdoc
 
 
 Features
@@ -111,7 +107,7 @@ Changes
   Pyomo 4 is advised, as support while be dropped with the next release to
   support new features.
 * New feature: maximal power gradient for conversion processes
-* Documentation: :doc:`buyselldoc` long explanation for `Buy` and `Sell` 
+* Documentation: `buyselldoc` (expired) long explanation for `Buy` and `Sell` 
   commodity types
 * Documentation: :doc:`implementation` full listing of sets, parameter,
   variables, objective function and constraints in mathematical notation and

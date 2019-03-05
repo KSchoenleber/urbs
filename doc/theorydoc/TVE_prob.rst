@@ -26,8 +26,8 @@ When the process in question is a process with part load behavior the equation
 for the time variable efficiency case takes the form:
 
 .. math::
-   &\forall p\in P^{\text{partload}} and p \in P^{\text{TimeVarEff}},~c\in C,
-   ~t\in T_m:\\\\
+   &\forall p\in P^{\text{partload}}~\text{and}~ p \in P^{\text{TimeVarEff}},
+   ~c\in C,~t\in T_m:\\\\
    &\epsilon^{\text{out}}_{ypct}=\Delta t\cdot f^{\text{out}}_{ypt}\cdot
    \left(\frac{\underline{r}^{\text{out}}_{ypc}-r^{\text{out}}_{ypc}}
    {1-\underline{P}_{yp}}\cdot \underline{P}_{yp}\cdot \kappa_{yp}+
