@@ -16,17 +16,19 @@ def validate_input(data):
     """
 
     # Ensure correct formation of vertex rule
-    for (sit, pro) in data['process'].index:
+    for (stf, sit, pro) in data['process'].index:
         for com in data['commodity'].index.get_level_values('Commodity'):
-            simplified_pro_com_index = ([(p, c) for p, c, d in
+            simplified_pro_com_index = ([(st, p, c) for st, p, c, d in
                                         data['process_commodity'].index
                                         .tolist()])
-            simplified_com_index = ([(s, c) for s, c, t in data['commodity']
-                                    .index.tolist()])
-            if ((pro, com) in simplified_pro_com_index and
-                    (sit, com) not in simplified_com_index):
+            simplified_com_index = ([(st, s, c) for st, s, c, t in
+                                    data['commodity'].index.tolist()])
+            if ((stf, pro, com) in simplified_pro_com_index and
+                (stf, sit, com) not in simplified_com_index):
                 raise ValueError('Commodities used in a process at a site must'
                                  ' be specified in the commodity input sheet'
+                                 '! The tuple (' + stf + ',' + sit + ',' +
+                                 com + ') is not in commodity input sheet.'
                                  '! The pair (' + sit + ',' + com + ')'
                                  ' is not in commodity input sheet.')
 
@@ -85,15 +87,16 @@ def validate_input(data):
                                      'energy-to-power ratio.')
 
     # Identify SupIm values larger than 1, which lead to an infeasible model
-    if (data['supim'] > 1).sum().sum() > 0:
-        raise ValueError('All values in Sheet SupIm must be <= 1.')
+    # if (data['supim'] > 1).sum().sum() >= 0:
+        # raise ValueError('All values in Sheet SupIm must be <= 1.')
 
     # Identify non sensible values for inputs
-    if (data['storage']['init'] > 1).any():
-        raise ValueError("In worksheet 'storage' all values in column 'init'"
-                         " must be either in [0,1] (for a fixed initial"
-                         " storage level) or 'nan' for a variable initial"
-                         " storage level")
+    if not data['storage'].empty:
+        if (data['storage']['init'] > 1).any():
+            raise ValueError("In worksheet 'storage' all values in column 'init'"
+                            " must be either in [0,1] (for a fixed initial"
+                            " storage level) or 'nan' for a variable initial"
+                            " storage level")
 
     # Identify outdated column label 'maxperstep' on the commodity tab and
     # suggest a rename to 'maxperhour'
@@ -121,12 +124,12 @@ def validate_input(data):
         for site in data['storage'].index.levels[0].tolist():
             if site not in data['site'].index.tolist():
                 raise KeyError("All names in the column 'Site' in input "
-                               "worksheet 'Storage' must be from the list of "
-                               "site names specified in the worksheet 'Site'.")
+                            "worksheet 'Storage' must be from the list of "
+                            "site names specified in the worksheet 'Site'.")
 
     if not data['dsm'].empty:
         for site in data['dsm'].index.levels[0].tolist():
             if site not in data['site'].index.tolist():
                 raise KeyError("All names in the column 'Site' in input "
-                               "worksheet 'DSM' must be from the list of site "
-                               "names specified in the worksheet 'Site'.")
+                            "worksheet 'DSM' must be from the list of site "
+                            "names specified in the worksheet 'Site'.")
