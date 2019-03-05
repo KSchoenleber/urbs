@@ -1,5 +1,7 @@
 .. module:: urbs
 
+.. _theory-multinode:
+
 Multinode optimization model
 =============================
 The introduction of multiple spatial nodes into the model is the second big

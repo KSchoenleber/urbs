@@ -34,7 +34,6 @@ first running model.
    :maxdepth: 1
 
    Users_guide
-   tutorial
    workflow
 
 Mathematical documentation

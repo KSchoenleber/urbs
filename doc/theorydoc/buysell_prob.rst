@@ -1,5 +1,7 @@
 .. module:: urbs
 
+.. _theory-buysell:
+
 Trading with an external market
 ===============================
 In urbs it is possible to model the trade with an external market. For this two

@@ -1,5 +1,7 @@
 .. module:: urbs
 
+.. _theory-storage:
+
 Energy Storage
 ==============
 Storages can optionally be set in urbs. They introduce additional variables and

@@ -7,7 +7,8 @@ Process Constraints
 variable total process capacity :math:`\kappa_{yvp}`. The variable total
 process  capacity is defined by the constraint as the sum of the parameter
 process  capacity installed :math:`K_{vp}` and the variable new process
-capacity  :math:`\hat{\kappa}_{yvp}`.
+capacity  :math:`\hat{\kappa}_{yvp}`. The mathematical explanation of this rule
+is given in :ref:`theory-min`.
 
 In script ``model.py`` the constraint process capacity rule is defined and
 calculated by the following code fragment:
@@ -26,7 +27,8 @@ calculated by the following code fragment:
 process input commodity flow :math:`\epsilon_{yvcpt}^\text{in}`. The variable
 process input commodity flow is defined by the constraint as the product of the
 variable process throughput :math:`\tau_{yvpt}` and the parameter process input
-ratio :math:`r_{ypc}^\text{in}`.
+ratio :math:`r_{ypc}^\text{in}`.The mathematical explanation of this rule is
+given in :ref:`theory-min`.
 
 In script ``model.py`` the constraint process input rule is defined and
 calculated by the following code fragment:
@@ -45,7 +47,8 @@ calculated by the following code fragment:
 process output commodity flow :math:`\epsilon_{yvcpt}^\text{out}`. The variable
 process output commodity flow is defined by the constraint as the product of
 the variable process throughput :math:`\tau_{yvpt}` and the parameter process
-output ratio :math:`r_{ypc}^\text{out}`.
+output ratio :math:`r_{ypc}^\text{out}`. The mathematical explanation of this
+rule is given in :ref:`theory-min`.
 
 In script ``model.py`` the constraint process output rule is defined and
 calculated by the following code fragment:
@@ -69,7 +72,8 @@ a commodity is an intermittent supply commodity :math:`c \in C_\text{sup}`. The
 variable process input commodity flow is defined by the constraint as the
 product of the variable total process capacity :math:`\kappa_{yvp}` and the
 parameter intermittent supply capacity factor :math:`s_{yvct}`, scaled by the 
-size of the time steps :math: `\Delta t`.
+size of the time steps :math: `\Delta t`. The mathematical explanation of this
+rule is given in :ref:`theory-min`.
 
 In script ``model.py`` the constraint intermittent supply rule is defined and
 calculated by the following code fragment:
@@ -89,7 +93,8 @@ capacity rule limits the variable process throughput :math:`\tau_{yvpt}`. This
 constraint prevents processes from exceeding their capacity. The constraint
 states that the variable process throughput must be less than or equal to the
 variable total process capacity :math:`\kappa_{yvp}`, scaled by the size
-of the time steps :math: `\Delta t`.
+of the time steps :math: `\Delta t`. The mathematical explanation of this rule
+is given in :ref:`theory-min`.
 
 In script ``model.py`` the constraint process throughput by capacity rule is
 defined and calculated by the following code fragment:
@@ -110,7 +115,8 @@ gradient rule limits the process power gradient
 processes from exceeding their maximal possible change in activity from one
 time step to the next. The constraint states that absolute power gradient must
 be less than or equal to the maximal power gradient :math:`\overline{PG}_{yvp}`
-parameter (scaled to capacity and by time step duration).
+parameter (scaled to capacity and by time step duration). The mathematical
+explanation of this rule is given in :ref:`theory-min`.
 
 In script ``model.py`` the constraint process throughput gradient rule is split
 into 2 parts and defined and calculated by the following code fragments:
@@ -138,7 +144,8 @@ having less than a lower bound. The constraint states that the variable total
 process capacity :math:`\kappa_{yvp}` must be greater than or equal to the
 parameter process capacity lower bound :math:`\underline{K}_{yvp}` and less
 than or equal to the parameter process capacity upper bound
-:math:`\overline{K}_{yvp}`.
+:math:`\overline{K}_{yvp}`. The mathematical explanation of this rule is given
+in :ref:`theory-min`.
 
 In script ``model.py`` the constraint process capacity limit rule is defined
 and calculated by the following code fragment:
@@ -164,10 +171,11 @@ processes that use complementary buy and sell commodities must be equal. Buy
 and sell commodities are complementary, when a commodity :math:`c` is an output
 of a process where the buy commodity is an input, and at the same time the
 commodity :math:`c` is an input commodity of a process where the sell commodity
-is an output.
+is an output. The mathematical explanation of this rule is given in
+:ref:`theory-buysell`.
 
-In script ``model.py`` the constraint sell buy symmetry rule is defined and
-calculated by the following code fragment:
+In script ``BuySellPrice.py`` the constraint sell buy symmetry rule is defined
+and calculated by the following code fragment:
 
 ::
 
@@ -177,7 +185,7 @@ calculated by the following code fragment:
         doc='total power connection capacity must be symmetric in both '
             'directions')
 
-.. literalinclude:: /../urbs/model.py
+.. literalinclude:: /../urbs/features/BuySellPrice.py
    :pyobject: res_sell_buy_symmetry_rule
 
 
@@ -185,9 +193,10 @@ calculated by the following code fragment:
 efficiency with the parameter time series :math:`f_{yvpt}^\text{out}`. The
 process output for all commodities is thus manipulated depending on time. This
 contraint is not valid for environmental commodities since these are typically
-linked to an input commodity flow rather than an output commodity flow.
+linked to an input commodity flow rather than an output commodity flow. The
+mathematical explanation of this rule is given in :ref:`theory-TVE`.
 
-In script ``model.py`` the constraint process time variable output rule is
+In script ``TimeVarEff.py`` the constraint process time variable output rule is
 defined and calculated by the following code fragment:
 
 ::
@@ -197,7 +206,7 @@ defined and calculated by the following code fragment:
         rule=def_pro_timevar_output_rule,
         doc='e_pro_out = tau_pro * r_out * eff_factor')
 
-.. literalinclude:: /../urbs/model.py
+.. literalinclude:: /../urbs/features/TimeVarEff.py
    :pyobject: def_pro_timevar_output_rule
 
 .. _sec-partial-startup-constr:
@@ -219,7 +228,8 @@ load fraction :math:`\underline{P}_{yvp}`.
 
 **Throughput by Min fraction Rule**: This constraint limits the minimal
 operational state of a process downward, making sure that the minimal part load
-fraction is honored.
+fraction is honored. The mathematical explanation of this rule is given in
+:ref:`theory-min`.
 
 In script ``model.py`` this constraint is defined and calculated by the
 following code fragment:
@@ -239,7 +249,8 @@ following code fragment:
 linear behavior to a more complex one. Instead of constant in- and output
 ratios these are now interpolated linearly between the value for full operation
 :math:`r^{\text{in/out}}_{yvp}` at full load and the minimum in/output ratios
-:math:`\underline{r}^{\text{in/out}}_{yvp}` at the mimimum operation point.   
+:math:`\underline{r}^{\text{in/out}}_{yvp}` at the mimimum operation point. The
+mathematical explanation of this rule is given in :ref:`theory-min`.   
 
 In script `model.py` this expression is written in the following way for the
 input ratio (and analogous for the output ratios):
@@ -263,5 +274,5 @@ code for the output changes to.
         rule=def_pro_partial_timevar_output_rule,
         doc='e_pro_out = tau_pro * r_out * eff_factor')
 
-.. literalinclude:: /../urbs/model.py
+.. literalinclude:: /../urbs/features/TimeVarEff.py
    :pyobject: def_pro_partial_timevar_output_rule

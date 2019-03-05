@@ -1,5 +1,7 @@
 .. module:: urbs
 
+.. _theory-intertemp:
+
 Intertemporal optimization model
 ================================
 Intertemporal models are a more general type of model than the minimal case.

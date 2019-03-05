@@ -1,5 +1,7 @@
 .. module:: urbs
 
+.. _theory-dsm:
+
 Demand side management
 ======================
 Demand side management allows for the shifting of demands in time. It thus

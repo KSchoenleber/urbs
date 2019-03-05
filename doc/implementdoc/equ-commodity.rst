@@ -12,7 +12,8 @@ the site :math:`v` in support timeframe :math:`y` at the timestep :math:`t` is
 getting by the interaction with the technologies given above. Correspondingly,
 the value of the function being less than zero means that the presence of the
 commodity in the site at the timestep is getting more than before by the
-technologies given above.
+technologies given above. The mathematical explanation of this rule for general
+poblems is explained in :ref:`theory-storage`.
 
 In script ``modelhelper.py`` the value of the commodity balance function
 :math:`\mathrm{CB}(y,v,c,t)` is calculated by the following code fragment: 
@@ -20,6 +21,13 @@ In script ``modelhelper.py`` the value of the commodity balance function
 .. literalinclude:: /../urbs/features/modelhelper.py
    :pyobject: commodity_balance
 
+where the two functions introducing the partly balances for transmissions and
+storages, respectively, are given by:
+
+.. literalinclude:: /../urbs/features/transmission.py
+   :pyobject: transmission_balance
+.. literalinclude:: /../urbs/features/storage.py
+   :pyobject: storage_balance
 
 **Vertex Rule**: The vertex rule is the main constraint that has to be
 satisfied for every commodity. It respresent a version of
@@ -28,7 +36,8 @@ defined differently for each commodity type. The inequality requires, that any
 imbalance (CB>0, CB<0) of a commodity :math:`c` in a site :math:`v` and support
 timeframe :math:`y` at a timestep :math:`t` to be balanced by a corresponding
 source term or demand. The rule is not defined for enviromental or SupIm
-commodities.
+commodities. The mathematical explanation of this rule is given in
+:ref:`theory-min`.
 
 In script ``model.py`` the constraint vertex rule is defined and calculated by
 the following code fragments:
@@ -44,6 +53,14 @@ the following code fragments:
 .. literalinclude:: /../urbs/model.py
    :pyobject: res_vertex_rule
 
+where the two functions introducing the effects of Buy/Sell or DSM events,
+respectively, are given by:
+
+.. literalinclude:: /../urbs/features/BuySellPrice.py
+   :pyobject: bsp_surplus
+.. literalinclude:: /../urbs/features/dsm.py
+   :pyobject: dsm_surplus
+
 
 **Stock Per Step Rule**: The constraint stock per step rule applies only for
 commodities of type "Stock" (:math:`c \in C_\text{st}`). This constraint limits
@@ -51,7 +68,8 @@ the amount of stock commodity :math:`c \in C_\text{st}`, that can be used by
 the energy system in the site :math:`v` in support timeframe :math:`y` at the
 timestep :math:`t`. This amount is limited by the product of the parameter
 maximum stock supply limit per hour :math:`\overline{l}_{yvc}` and the timestep
-length :math:`\Delta t`.
+length :math:`\Delta t`. The mathematical explanation of this rule is given in
+:ref:`theory-min`.
 
 In script ``model.py`` the constraint stock per step rule is defined and
 calculated by the following code fragment:
@@ -76,7 +94,8 @@ annually by the energy system in the site :math:`v` and support timeframe
 limit per vertex :math:`\overline{L}_{yvc}`. The annual usage of stock
 commodity is calculated by the sum of the products of the parameter weight
 :math:`w` and the parameter stock commodity source term :math:`\rho_{yvct}`,
-summed over all timestepsa:math:`t \in T_m`.
+summed over all timestepsa:math:`t \in T_m`. The mathematical explanation of
+this rule is given in :ref:`theory-min`.
 
 In script ``model.py`` the constraint total stock rule is defined and
 calculated by the following code fragment:
@@ -101,7 +120,8 @@ supply limit per hour :math:`\overline{g}_{yvc}`. To satisfy this constraint,
 the value of the variable sell commodity source term :math:`\varrho_{yvct}`
 must be less than or equal to the value of the parameter maximum sell supply
 limit per hour :math:`\overline{g}_{vc}` multiplied with the length of the
-time steps :math:`\Delta t`.
+time steps :math:`\Delta t`. The mathematical explanation of this rule is given
+in :ref:`theory-buysell`.
 
 In script ``BuySellPrice.py`` the constraint sell per step rule is defined and
 calculated by the following code fragment:
@@ -123,7 +143,8 @@ sold annually by the energy system in the site :math:`v` and support timeframe
 limit per vertex :math:`\overline{G}_{yvc}`. The annual usage of sell commodity
 is calculated by the sum of the products of the parameter weight :math:`w` and
 the parameter sell commodity source term :math:`\varrho_{yvct}`, summed over
-all timesteps :math:`t \in T_m`.
+all timesteps :math:`t \in T_m`. The mathematical explanation of this rule is
+given in :ref:`theory-buysell`.
 
 In script ``BuySellPrice.py`` the constraint total sell rule is defined and
 calculated by the following code fragment:
@@ -146,7 +167,8 @@ supply limit per time step :math:`\overline{b}_{yvc}`. To satisfy this
 constraint, the value of the variable buy commodity source term
 :math:`\psi_{yvct}` must be less than or equal to the value of the parameter
 maximum buy supply limit per time step :math:`\overline{b}_{vc}`, multiplied by
-the length of the time steps :math:`\Delta t`.
+the length of the time steps :math:`\Delta t`. The mathematical explanation of
+this rule is given in :ref:`theory-buysell`.
 
 In script ``BuySellPrice.py`` the constraint buy per step rule is defined and
 calculated by the following code fragment:
@@ -170,7 +192,8 @@ commodity must be less than or equal to the value of the parameter buy supply
 limit per vertex :math:`\overline{B}_{vc}`. The annual usage of buy commodity
 is calculated by the sum of the products of the parameter weight :math:`w` and
 the parameter buy commodity source term :math:`\psi_{yvct}`, summed over all
-modeled timesteps :math:`t \in T_m`.
+modeled timesteps :math:`t \in T_m`. The mathematical explanation of this rule
+is given in :ref:`theory-buysell`.
 
 In script ``BuySellPrice.py`` the constraint total buy rule is defined and
 calculated by the following code fragment:
@@ -196,7 +219,8 @@ satisfy this constraint, the negative value of the commodity balance for the
 given environmental commodity :math:`c \in C_\text{env}` must be less than or
 equal to the value of the parameter maximum environmental output per time step
 :math:`\overline{m}_{vc}`, multiplied by the length of the time steps
-:math:`\Delta t`.
+:math:`\Delta t`. The mathematical explanation of this rule is given
+in :ref:`theory-min`.
 
 In script ``model.py`` the constraint environmental output per step rule is
 defined and calculated by the following code fragment:
@@ -222,7 +246,8 @@ release of environmental commodity must be less than or equal to the value of
 the parameter maximum annual environmental output :math:`\overline{M}_{vc}`.
 The annual release of environmental commodity is calculated by the sum of the
 products of the parameter weight :math:`w` and the negative value of commodity
-balance function, summed over all modeled time steps :math:`t \in T_m`.
+balance function, summed over all modeled time steps :math:`t \in T_m`. The
+mathematical explanation of this rule is given in :ref:`theory-min`.
 
 In script ``model.py`` the constraint total environmental output rule is
 defined and calculated by the following code fragment:
@@ -256,7 +281,8 @@ in time step :math:`t` can be compensated during a certain time step interval
 allowable delay time of downshifts in hours, which is scaled into time steps by
 dividing by the timestep length :math:`{\Delta t}`. Depending on the DSM
 efficiency :math:`e_{yvc}`, an upshift in a DSM commodity may correspond to
-multiple downshifts which sum to less than the original upshift.
+multiple downshifts which sum to less than the original upshift. The
+mathematical explanation of this rule is given in :ref:`theory-dsm`.
     
 In script ``dsm.py`` the constraint DSM variables rule is defined by the
 following code fragment:
@@ -276,7 +302,8 @@ following code fragment:
 :math:`v` and support timeframe :math:`y` of demand commodity :math:`c` in time
 step :math:`t` is limited by the DSM maximal upshift per hour
 :math:`\overline{K}_{yvc}^\text{up}`, multiplied by the langth of the time
-steps :math:`\Delta t`.
+steps :math:`\Delta t`. The mathematical explanation of this rule is given in
+:ref:`theory-dsm`.
     
 In script ``dsm.py`` the constraint DSM upward rule is defined by the
 following code fragment:
@@ -295,7 +322,8 @@ following code fragment:
 :math:`\delta_{t,tt,yvc}^\text{down}` in site :math:`v` and support timeframe
 :math:`y` of demand commodity :math:`c` in time step :math:`t` is limited by
 the DSM maximal downshift per hour :math:`\overline{K}_{yvc}^\text{down}`,
-multiplied by the length of the time steps :math:`\Delta t`.
+multiplied by the length of the time steps :math:`\Delta t`. The mathematical
+explanation of this rule is given in :ref:`theory-dsm`.
     
 In script ``dsm.py`` the constraint DSM downward rule is defined by the
 following code fragment:
@@ -313,7 +341,8 @@ following code fragment:
 
 **DSM Maximum Rule**: The DSM maximum rule limits the shift of one DSM unit in
 site :math:`v` in support timeframe :math:`y` of demand commodity :math:`c` in
-time step :math:`t`.
+time step :math:`t`. The mathematical explanation of this rule is given in
+:ref:`theory-dsm`.
    
 In script ``dsm.py`` the constraint DSM maximum rule is defined by the
 following code fragment:
@@ -332,7 +361,8 @@ following code fragment:
 :math:`v` and support timeframe :math:`y` of demand commodity :math:`c` during
 a set recovery period :math:`o_{yvc}`. Since the recovery period
 :math:`o_{yvc}` is input as hours, it is scaled into time steps by dividing it
-by the length of the time steps :math:`\Delta t`.
+by the length of the time steps :math:`\Delta t`. The mathematical explanation
+of this rule is given in :ref:`theory-dsm`.
     
 In script ``dsm.py`` the constraint DSM Recovery rule is defined by the
 following code fragment:
@@ -362,7 +392,8 @@ than or equal to the parameter maximum global annual CO2 emission limit
 site :math:`v` at a single timestep :math:`t` is calculated by the product of
 commodity balance of enviromental commodities :math:`\mathrm{CB}(y,v,CO_{2},t)`
 and the parameter weight :math:`w`. This constraint is skipped if the value of
-the parameter :math:`\overline{L}_{CO_{2}}` is set to ``inf``.
+the parameter :math:`\overline{L}_{CO_{2}}` is set to ``inf``. The mathematical
+explanation of this rule is given in :ref:`theory-min`.
 
 In script ``model.py`` the constraint annual global CO2 limit rule is defined
 and calculated by the following code fragment:
@@ -382,7 +413,8 @@ a single support imeframe :math:`y` in a single site :math:`v` and at a single
 timestep :math:`t` is calculated by the product of tehe commodity balance of
 enviromental commodities :math:`\mathrm{CB}(y,v,CO_{2},t)` and the parameter
 weight :math:`w`. This constraint is skipped if the value of the parameter
-:math:`\overline{\overline{L}}_{CO_{2}}` is set to ``inf``.
+:math:`\overline{\overline{L}}_{CO_{2}}` is set to ``inf``. The mathematical
+explanation of this rule is given in :ref:`theory-intertemp`.
 
 In script ``model.py`` the constraint global CO2 budget is defined and
 calculated by the following code fragment:

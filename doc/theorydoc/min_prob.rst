@@ -1,5 +1,7 @@
 .. module:: urbs
 
+.. _theory-min:
+
 Minimal optimization model
 ==========================
 The minimal model in urbs is a simple expansion and dispatch model with only
@@ -240,7 +242,7 @@ same quantity per timestep. the two rules take the following form:
    &\rho_ct\leq \overline{l}_{c},
 
 where :math:`\overline{L}_c` and :math:`\overline{l}_c` are the totally allowed
-annual and hourly retrieval of commodity :math:``c` from the stock,
+annual and hourly retrieval of commodity :math:`c` from the stock,
 respectively.
 
 Environmental commodity limitations
@@ -256,7 +258,7 @@ rules:
    & -\text{CB}(c,t)\leq \overline{m}_{c},
 
 where :math:`\overline{M}_c` and :math:`\overline{m}_c` are the totally allowed
-annual and hourly emissions of environmental commodity :math:``c` to the
+annual and hourly emissions of environmental commodity :math:`c` to the
 atmosphere, respectively.
 
 Process dispatch constraints

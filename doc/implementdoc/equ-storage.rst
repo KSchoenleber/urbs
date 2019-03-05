@@ -14,9 +14,10 @@ product of the variable storage input commodity flow
 :math:`\epsilon_{yvst}^\text{in}` and the parameter storage efficiency during
 charge :math:`e_{yvs}^\text{in}`. Outgoing energy is given by the variable
 storage output commodity flow :math:`\epsilon_{yvst}^\text{out}` divided by the
-parameter storage efficiency during discharge :math:`e_{yvs}^\text{out}`
+parameter storage efficiency during discharge :math:`e_{yvs}^\text{out}`. The
+mathematical explanation of this rule is given in :ref:`theory-storage`.
 
-In script ``model.py`` the constraint storage state rule is defined and
+In script ``storage.py`` the constraint storage state rule is defined and
 calculated by the following code fragment:
 
 ::
@@ -26,16 +27,17 @@ calculated by the following code fragment:
         rule=def_storage_state_rule,
         doc='storage[t] = (1 - selfdischarge) * storage[t-1] + input * eff_in - output / eff_out')
 
-.. literalinclude:: /../urbs/model.py
+.. literalinclude:: /../urbs/features/storage.py
    :pyobject: def_storage_state_rule
 
 **Storage Power Rule**: The constraint storage power rule defines the variable
 total storage power :math:`\kappa_{yvs}^\text{p}`. The variable total storage
 power is defined by the constraint as the sum of the parameter storage power
 installed :math:`K_{yvs}^\text{p}` and the variable new storage power
-:math:`\hat{\kappa}_{yvs}^\text{p}`
+:math:`\hat{\kappa}_{yvs}^\text{p}`. The mathematical explanation of this rule
+is given in :ref:`theory-storage`.
 
-In script ``model.py`` the constraint storage power rule is defined and
+In script ``storage.py`` the constraint storage power rule is defined and
 calculated by the following code fragment:
 ::
 
@@ -44,16 +46,17 @@ calculated by the following code fragment:
         rule=def_storage_power_rule,
         doc='storage power = inst-cap + new power')
 
-.. literalinclude:: /../urbs/model.py
+.. literalinclude:: /../urbs/features/storage.py
    :pyobject: def_storage_power_rule
 
 **Storage Capacity Rule**: The constraint storage capacity rule defines the
 variable total storage size :math:`\kappa_{yvs}^\text{c}`. The variable total
 storage size is defined by the constraint as the sum of the parameter storage
 content installed :math:`K_{yvs}^\text{c}` and the variable new storage size
-:math:`\hat{\kappa}_{yvs}^\text{c}`.
+:math:`\hat{\kappa}_{yvs}^\text{c}`. The mathematical explanation of this rule
+is given in :ref:`theory-storage`.
 
-In script ``model.py`` the constraint storage capacity rule is defined and
+In script ``storage.py`` the constraint storage capacity rule is defined and
 calculated by the following code fragment:
 ::
 
@@ -62,7 +65,7 @@ calculated by the following code fragment:
         rule=def_storage_capacity_rule,
         doc='storage capacity = inst-cap + new capacity')
 
-.. literalinclude:: /../urbs/model.py
+.. literalinclude:: /../urbs/features/storage.py
    :pyobject: def_storage_capacity_rule
 
 **Storage Input By Power Rule**: The constraint storage input by power rule
@@ -73,9 +76,10 @@ limits the variable storage input commodity flow
 constraint states that the variable :math:`\epsilon_{yvst}^\text{in}` must be
 less than or equal to the variable total storage power
 :math:`\kappa_{yvs}^\text{p}`, scaled by the size of the time steps
-:math: `\Delta t`.
+:math: `\Delta t`. The mathematical explanation of this rule is given in
+:ref:`theory-storage`.
 
-In script ``model.py`` the constraint storage input by power rule is defined
+In script ``storage.py`` the constraint storage input by power rule is defined
 and calculated by the following code fragment:
 ::
 
@@ -84,7 +88,7 @@ and calculated by the following code fragment:
         rule=res_storage_input_by_power_rule,
         doc='storage input <= storage power')
 
-.. literalinclude:: /../urbs/model.py
+.. literalinclude:: /../urbs/features/storage.py
    :pyobject: res_storage_input_by_power_rule
 
 **Storage Output By Power Rule**: The constraint storage output by power rule
@@ -95,9 +99,10 @@ limits the variable storage output commodity flow
 constraint states that the variable :math:`\epsilon_{vst}^\text{out}` must be
 less than or equal to the variable total storage power
 :math:`\kappa_{yvs}^\text{p}`, scaled by the size of the time steps
-:math:`\Delta t`.
+:math:`\Delta t`. The mathematical explanation of this rule is given in
+:ref:`theory-storage`.
 
-In script ``model.py`` the constraint storage output by power rule is defined
+In script ``storage.py`` the constraint storage output by power rule is defined
 and calculated by the following code fragment:
 ::
 
@@ -106,7 +111,7 @@ and calculated by the following code fragment:
         rule=res_storage_output_by_power_rule,
         doc='storage output <= storage power')
 
-.. literalinclude:: /../urbs/model.py
+.. literalinclude:: /../urbs/features/storage.py
    :pyobject: res_storage_output_by_power_rule
 
 **Storage State By Capacity Rule**: The constraint storage state by capacity
@@ -116,9 +121,10 @@ rule limits the variable storage energy content
 :math:`t` from having more storage content than the storage content capacity.
 The constraint states that the variable :math:`\epsilon_{yvst}^\text{con}` must
 be less than or equal to the variable total storage size
-:math:`\kappa_{yvs}^\text{c}`.
+:math:`\kappa_{yvs}^\text{c}`. The mathematical explanation of this rule is
+given in :ref:`theory-storage`.
 
-In script ``model.py`` the constraint storage state by capacity rule is defined
+In script ``storage.py`` the constraint storage state by capacity rule is defined
 and calculated by the following code fragment.
 ::
 
@@ -127,7 +133,7 @@ and calculated by the following code fragment.
         rule=res_storage_state_by_capacity_rule,
         doc='storage content <= storage capacity')
 
-.. literalinclude:: /../urbs/model.py
+.. literalinclude:: /../urbs/features/storage.py
    :pyobject: res_storage_state_by_capacity_rule
 
 **Storage Power Limit Rule**: The constraint storage power limit rule limits
@@ -138,9 +144,10 @@ having less than a lower bound. The constraint states that the variable total
 storage power :math:`\kappa_{yvs}^\text{p}` must be greater than or equal to
 the parameter storage power lower bound :math:`\underline{K}_{yvs}^\text{p}`
 and less than or equal to the parameter storage power upper bound
-:math:`\overline{K}_{yvs}^\text{p}`.
+:math:`\overline{K}_{yvs}^\text{p}`. The mathematical explanation of this rule
+is given in :ref:`theory-storage`.
 
-In script ``model.py`` the constraint storage power limit rule is defined and
+In script ``storage.py`` the constraint storage power limit rule is defined and
 calculated by the following code fragment: 
 ::
 
@@ -149,7 +156,7 @@ calculated by the following code fragment:
         rule=res_storage_power_rule,
         doc='storage.cap-lo-p <= storage power <= storage.cap-up-p')
 
-.. literalinclude:: /../urbs/model.py
+.. literalinclude:: /../urbs/features/storage.py
    :pyobject: res_storage_power_rule
 
 **Storage Capacity Limit Rule**: The constraint storage capacity limit rule
@@ -160,9 +167,10 @@ upper bound and having less than a lower bound. The constraint states that the
 variable total storage size :math:`\kappa_{yvs}^\text{c}` must be greater than
 or equal to the parameter storage content lower bound
 :math:`\underline{K}_{yvs}^\text{c}` and less than or equal to the parameter
-storage content upper bound :math:`\overline{K}_{yvs}^\text{c}`
+storage content upper bound :math:`\overline{K}_{yvs}^\text{c}`. The
+mathematical explanation of this rule is given in :ref:`theory-storage`.
 
-In script ``model.py`` the constraint storage capacity limit rule is defined
+In script ``storage.py`` the constraint storage capacity limit rule is defined
 and calculated by the following code fragment:
 ::
 
@@ -171,7 +179,7 @@ and calculated by the following code fragment:
         rule=res_storage_capacity_rule,
         doc='storage.cap-lo-c <= storage capacity <= storage.cap-up-c')
 
-.. literalinclude:: /../urbs/model.py
+.. literalinclude:: /../urbs/features/storage.py
    :pyobject: res_storage_capacity_rule
 
 **Initial And Final Storage State Rule**:
@@ -203,9 +211,10 @@ the end of the simulation. The variable storage energy content
 restricted by this constraint. The constraint states that the variable
 :math:`\epsilon_{yvst_N}^\text{con}` must be greater than or equal to the
 product of the parameters storage content installed :math:`K_{yvs}^\text{c}`
-and initial and final state of charge :math:`I_{yvs}`.
+and initial and final state of charge :math:`I_{yvs}`. The mathematical
+explanation of this rule is given in :ref:`theory-storage`.
 
-In script ``model.py`` the constraint initial and final storage state rule is
+In script ``storage.py`` the constraint initial and final storage state rule is
 then defined and calculated by the following code fragment:
 ::
 
@@ -214,7 +223,7 @@ then defined and calculated by the following code fragment:
         rule=res_initial_and_final_storage_state_rule,
         doc='storage content initial == and final >= storage.init * capacity')
 
-.. literalinclude:: /../urbs/model.py
+.. literalinclude:: /../urbs/features/storage.py
    :pyobject: res_initial_and_final_storage_state_rule
 
 In case 2 the constraint becomes a lot easier, since the initial and final
@@ -225,7 +234,7 @@ state are simply compared to each other by the following inequality:
 	\forall v\in V, s\in S\colon\ \epsilon_{vst_1}^\text{con}
     \leq \epsilon_{vst_N}^\text{con}
 
-In script ``model.py`` the constraint initial and final storage state rule is
+In script ``storage.py`` the constraint initial and final storage state rule is
 then defined and calculated by the following code fragment:
 ::
 
@@ -234,7 +243,7 @@ then defined and calculated by the following code fragment:
         rule=res_initial_and_final_storage_state_var_rule,
         doc='storage content initial <= final, both variable')
 
-.. literalinclude:: /../urbs/model.py
+.. literalinclude:: /../urbs/features/storage.py
    :pyobject: res_initial_and_final_storage_state_var_rule
    
 **Storage Energy to Power Ratio Rule**:
@@ -245,9 +254,10 @@ capacities through a user-defined "energy to power ratio"
 :math:`k_{yvs}^\text{E/P}`. It has to be noted that this constraint is only
 active for the storages with a positive value under the column "ep-ratio" in
 the input file, and when this value is not given, the power and energy
-capacities can be sized independently.
+capacities can be sized independently. The mathematical explanation of this
+rule is given in :ref:`theory-storage`.
 
-In script ``model.py`` the constraint storage energy to power rule is
+In script ``storage.py`` the constraint storage energy to power rule is
 then defined and calculated by the following code fragment:
 ::
 
@@ -256,5 +266,5 @@ then defined and calculated by the following code fragment:
         rule=def_storage_energy_power_ratio_rule,
         doc='storage capacity = storage power * storage E2P ratio')
 
-.. literalinclude:: /../urbs/model.py
+.. literalinclude:: /../urbs/features/storage.py
    :pyobject: def_storage_energy_power_ratio_rule   

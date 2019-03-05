@@ -7,7 +7,7 @@ from .features.modelhelper import *
 from .identify import *
 
 
-def read_input(input_files,year):
+def read_input(input_files, year):
     """Read Excel input file and prepare URBS input dict.
 
     Reads an Excel spreadsheet that adheres to the structure shown in
