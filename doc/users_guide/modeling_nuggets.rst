@@ -1,5 +1,7 @@
 .. module:: urbs
 
+.. _nuggets:
+
 Modeling nuggets
 ================
 Here you can find a collection of non-trivial modeling ideas that can be used

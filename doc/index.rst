@@ -34,7 +34,6 @@ first running model.
    :maxdepth: 1
 
    Users_guide
-   workflow
 
 Mathematical documentation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -57,7 +56,6 @@ implementation.
    :maxdepth: 1
    
    implementation
-   report
    api
 
 
@@ -124,7 +122,7 @@ Changes
 * Persistence functions `load` and `save`, based on pickle, allow saving
   and retrieving input data and problem instances including results, for later
   re-plotting or re-analysis without having to solve them again.
-* Documenation: :doc:`workflow` tutorial added with example "Newsealand"
+* Documenation: `workflow` tutorial added with example "Newsealand"
 
 2014-12-05 Version 0.3
 ^^^^^^^^^^^^^^^^^^^^^^

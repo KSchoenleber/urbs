@@ -1,5 +1,7 @@
 .. module urbs
 
+.. _objective:
+
 
 Objective function
 ^^^^^^^^^^^^^^^^^^

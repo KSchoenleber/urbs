@@ -13,10 +13,10 @@ and solve an optimization problem with urbs.
 First, there are the model paramters themselves, i.e. the parameters specifying
 the behavior of the different model entities such as commodities or processes.
 These paramters are entered into spreadsheets with a standardized structure.
-These then have to be placed in the subfolder ``Input`` There can be no further
-information given on those parameters here since they make up the particular
-energy system models. There are, however, two examples provided with the code,
-which are explained elsewhere in this documentation.
+These then have to be placed in the subfolder ``Input``. There can be no
+further information given on those parameters here since they make up the
+particular energy system models. There are, however, two examples provided with
+the code, which are explained elsewhere in this documentation.
 
 Second, there are the settings of the modeling run such as the modeling horizon
 or the solver to be employed. These settings are made in a run script. For the

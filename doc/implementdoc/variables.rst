@@ -110,7 +110,7 @@ hardcoded, which means they are not considered to be fixed or changed by the
 user.
     
 For more information on the definition of these variables see section
-:ref:`Cost Variables` and for their implementation see section :ref:`Costs`.
+:ref:`theory-min` and for their implementation see section :ref:`objective`.
 
 Commodity Variables
 ^^^^^^^^^^^^^^^^^^^
